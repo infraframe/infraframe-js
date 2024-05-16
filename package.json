@@ -1,0 +1,66 @@
+{
+  "name": "infraframe-js",
+  "title": "InfraFrame JavaScript SDK",
+  "description": "InfraFrame JavaScript SDK",
+  "version": "5.1.0",
+  "homepage": "https://infraframe.tech",
+  "author": "InfraFrame authors",
+  "keywords": [
+    "webrtc",
+    "library",
+    "sdk",
+    "mcu"
+  ],
+  "devDependencies": {
+    "@babel/core": "^7.22.8",
+    "@babel/plugin-transform-async-to-generator": "^7.8.3",
+    "@babel/plugin-transform-runtime": "^7.12.1",
+    "@babel/preset-env": "^7.22.20",
+    "@babel/runtime": "^7.12.1",
+    "@chiragrupani/karma-chromium-edge-launcher": "^2.1.0",
+    "babelify": "^10.0.0",
+    "chai": "^4.3.3",
+    "chai-as-promised": "^7.1.1",
+    "eslint-config-google": "^0.11.0",
+    "eslint-config-webrtc": "^1.0.0",
+    "grunt": "^1.5.3",
+    "grunt-browserify": "^6.0.0",
+    "grunt-cli": "^1.3.2",
+    "grunt-contrib-clean": "~2.0.0",
+    "grunt-contrib-compress": "^2.0.0",
+    "grunt-contrib-concat": "~1.0.1",
+    "grunt-contrib-connect": "^2.1.0",
+    "grunt-contrib-copy": "~1.0.0",
+    "grunt-contrib-uglify": "^5.0.1",
+    "grunt-eslint": "^24.2.0",
+    "grunt-jsdoc": "^2.4.1",
+    "grunt-string-replace": "~1.3.1",
+    "ink-docstrap": "^1.3.2",
+    "karma": "^6.3.16",
+    "karma-chai": "^0.1.0",
+    "karma-chrome-launcher": "^3.1.0",
+    "karma-firefox-launcher": "^2.1.0",
+    "karma-mocha": "^2.0.1",
+    "karma-mocha-reporter": "^2.2.5",
+    "karma-safari-launcher": "^1.0.0",
+    "mocha": "^10.0.0",
+    "sinon": "^7.5.0"
+  },
+  "overrides": {
+    "grunt-jsdoc": {
+      "jsdoc": "^4.0.0"
+    },
+    "ink-docstrap": {
+      "sanitize-html": "^2.3.2"
+    },
+    "semver": "^7.5.2"
+  },
+  "engines": {
+    "node": ">=16.0"
+  },
+  "main": "src/sdk/export.js",
+  "scripts": {
+    "postinstall": "cd scripts && grunt prepare",
+    "unittest": "node ./node_modules/karma/bin/karma start test/unit/config/karma.config.js"
+  }
+}
