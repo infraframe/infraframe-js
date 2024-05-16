@@ -8,11 +8,13 @@
 import * as base from './base/export.js';
 import * as p2p from './p2p/export.js';
 import * as conference from './conference/export.js';
+import * as rest from './rest/API.js';
 
 const InfraFrame = {
   Base: base,
   P2P: p2p,
   Conference: conference,
+  REST: rest,
 };
 
 export default InfraFrame;

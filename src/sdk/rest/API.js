@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 // Copyright (C) <2018> Intel Corporation
+// Copyright (C) <2024> InfraFrame team
 //
 // SPDX-License-Identifier: Apache-2.0
 
@@ -28,10 +29,12 @@
 
 'use strict';
 
-/*global require, CryptoJS, Buffer, url, http, https*/
-var Url = require("url");
+import CryptoJS from 'crypto';
+import { Buffer } from 'buffer';
+import * as http from 'http';
+import * as https from 'https';
 
-var OWT_REST = OWT_REST || {};
+import { Base64 } from '../base/base64';
 
 /**@namespace OWT_REST
  * @classDesc Namespace for OWT(Intel Collaboration Suite) REST API definition.
@@ -41,31 +44,32 @@ var OWT_REST = OWT_REST || {};
  * @classDesc Server-side APIs should be called by RTC service integrators, as demostrated in sampleRTCService.js. Server-side APIs are RESTful, provided as a Node.js module. All APIs, except OWT_REST.API.init(), should not be called too frequently. These API calls carry local timestamps and are grouped by serviceID. Once the server is handling an API call from a certain serviceID, all other API calls from the same serviceID, whose timestamps are behind, would be expired or treated as invalid.<br>
 We recommend that API calls against serviceID should have interval of at least 100ms. Also, it is better to retry the logic if it fails with an unexpected timestamp error.
  */
-OWT_REST.API = (function(OWT_REST) {
+const REST = function () {
   'use strict';
   var version = 'v1';
   var params = {
     service: undefined,
     key: undefined,
     url: undefined,
-    rejectUnauthorizedCert: undefined
+    rejectUnauthorizedCert: undefined,
   };
 
-  function calculateSignature (toSign, key) {
+  function calculateSignature(toSign, key) {
     var hash, hex, signed;
     hash = CryptoJS.HmacSHA256(toSign, key);
     hex = hash.toString(CryptoJS.enc.Hex);
-    signed = OWT_REST.Base64.encodeBase64(hex);
+    signed = Base64.encodeBase64(hex);
     return signed;
-  };
+  }
 
-  function send (method, resource, body, onOK, onError) {
-    var url = Url.parse(params.url + resource);
-    var ssl = (url.protocol === 'https:' ? true : false);
+  function send(method, resource, body, onOK, onError) {
+    var url = URL(params.url + resource);
+    var ssl = url.protocol === 'https:' ? true : false;
     var timestamp = new Date().getTime();
-    var cnounce = require('crypto').randomBytes(8).toString('hex');
+    var cnounce = CryptoJS.randomBytes(8).toString('hex');
     var toSign = timestamp + ',' + cnounce;
-    var header = 'MAuth realm=http://marte3.dit.upm.es,mauth_signature_method=HMAC_SHA256';
+    var header =
+      'MAuth realm=http://marte3.dit.upm.es,mauth_signature_method=HMAC_SHA256';
 
     header += ',mauth_serviceid=';
     header += params.service;
@@ -82,11 +86,13 @@ OWT_REST.API = (function(OWT_REST) {
       path: url.pathname + (url.search ? url.search : ''),
       method: method,
       headers: {
-        'Host': url.hostname,
-        'Authorization': header
-      }
+        Host: url.hostname,
+        Authorization: header,
+      },
     };
-    ssl && (params.rejectUnauthorizedCert !== undefined) && (options.rejectUnauthorized = params.rejectUnauthorizedCert);
+    ssl &&
+      params.rejectUnauthorizedCert !== undefined &&
+      (options.rejectUnauthorized = params.rejectUnauthorizedCert);
 
     var bodyJSON;
     if (body) {
@@ -97,9 +103,9 @@ OWT_REST.API = (function(OWT_REST) {
       options.headers['Content-Type'] = 'text/plain;charset=UTF-8';
     }
 
-    var doRequest = (ssl ? require('https').request : require('http').request);
+    var doRequest = ssl ? https.request : http.request;
     var req = doRequest(options, (res) => {
-      res.setEncoding("utf8");
+      res.setEncoding('utf8');
       var resTxt = '';
       var status = res.statusCode;
 
@@ -127,7 +133,7 @@ OWT_REST.API = (function(OWT_REST) {
     bodyJSON && req.write(bodyJSON);
 
     req.end();
-  };
+  }
 
   /**
      * @function init
@@ -142,7 +148,7 @@ OWT_REST.API = (function(OWT_REST) {
      * @example
   OWT_REST.API.init('5188b9af6e53c84ffd600413', '21989', 'http://61.129.90.140:3000/', true)
      */
-  var init = function(service, key, url, rejectUnauthorizedCert) {
+  var init = function (service, key, url, rejectUnauthorizedCert) {
     if (typeof service !== 'string' || service === '') {
       throw new TypeError('Invalid service ID');
     }
@@ -152,21 +158,27 @@ OWT_REST.API = (function(OWT_REST) {
     if (typeof url !== 'string' || url === '') {
       throw new TypeError('Invalid URL.');
     }
-    if (typeof rejectUnauthorizedCert !== 'boolean' && rejectUnauthorizedCert !== undefined) {
+    if (
+      typeof rejectUnauthorizedCert !== 'boolean' &&
+      rejectUnauthorizedCert !== undefined
+    ) {
       throw new TypeError('Invalid certificate setting');
     }
     params.service = service;
     params.key = key;
-    params.url = (url.endsWith('/') ? (url + version + '/') : (url + '/' + version + '/'));
-    params.rejectUnauthorizedCert = (rejectUnauthorizedCert === undefined ? true : rejectUnauthorizedCert);
+    params.url = url.endsWith('/')
+      ? url + version + '/'
+      : url + '/' + version + '/';
+    params.rejectUnauthorizedCert =
+      rejectUnauthorizedCert === undefined ? true : rejectUnauthorizedCert;
   };
 
   // Convert a viewports object to views which is defined in MCU.
   function viewportsToViews(viewports) {
     var view = {};
-    viewports.forEach(function(viewport) {
+    viewports.forEach(function (viewport) {
       view[viewport.name] = {
-        mediaMixing: viewport.mediaMixing
+        mediaMixing: viewport.mediaMixing,
       };
     });
     return view;
@@ -327,7 +339,7 @@ OWT_REST.API = (function(OWT_REST) {
     console.log ('Error:', err);
   });
      */
-  var createRoom = function(name, options, callback, callbackError) {
+  var createRoom = function (name, options, callback, callbackError) {
     if (!options) {
       options = {};
     }
@@ -337,13 +349,19 @@ OWT_REST.API = (function(OWT_REST) {
       delete options.viewports;
     }
 
-    send('POST', 'rooms', {
-      name: name,
-      options: options
-    }, function(roomRtn) {
-      var room = JSON.parse(roomRtn);
-      callback(room);
-    }, callbackError);
+    send(
+      'POST',
+      'rooms',
+      {
+        name: name,
+        options: options,
+      },
+      function (roomRtn) {
+        var room = JSON.parse(roomRtn);
+        callback(room);
+      },
+      callbackError
+    );
   };
 
   /**
@@ -362,15 +380,21 @@ OWT_REST.API = (function(OWT_REST) {
     console.log(status, error);
   });
      */
-  var getRooms = function(option, callback, callbackError) {
+  var getRooms = function (option, callback, callbackError) {
     option = option || {};
     var page = option.page || 1;
     var per_page = option.per_page || 50;
     var query = '?page=' + page + '&per_page=' + per_page;
-    send('GET', 'rooms' + query, undefined, function(roomsRtn) {
-      var rooms = JSON.parse(roomsRtn);
-      callback(rooms);
-    }, callbackError);
+    send(
+      'GET',
+      'rooms' + query,
+      undefined,
+      function (roomsRtn) {
+        var rooms = JSON.parse(roomsRtn);
+        callback(rooms);
+      },
+      callbackError
+    );
   };
 
   /**
@@ -389,7 +413,7 @@ OWT_REST.API = (function(OWT_REST) {
     console.log(status, error);
   });
      */
-  var getRoom = function(room, callback, callbackError) {
+  var getRoom = function (room, callback, callbackError) {
     if (typeof room !== 'string') {
       callbackError(401, 'Invalid room ID.');
       return;
@@ -398,10 +422,16 @@ OWT_REST.API = (function(OWT_REST) {
       callbackError(401, 'Empty room ID');
       return;
     }
-    send('GET', 'rooms/' + room, undefined, function(roomRtn) {
-      var room = JSON.parse(roomRtn);
-      callback(room);
-    }, callbackError);
+    send(
+      'GET',
+      'rooms/' + room,
+      undefined,
+      function (roomRtn) {
+        var room = JSON.parse(roomRtn);
+        callback(room);
+      },
+      callbackError
+    );
   };
 
   /**
@@ -420,10 +450,16 @@ OWT_REST.API = (function(OWT_REST) {
     console.log(status, error);
   });
      */
-  var deleteRoom = function(room, callback, callbackError) {
-    send('DELETE', 'rooms/' + room, undefined, function(room) {
-      callback(room);
-    }, callbackError);
+  var deleteRoom = function (room, callback, callbackError) {
+    send(
+      'DELETE',
+      'rooms/' + room,
+      undefined,
+      function (room) {
+        callback(room);
+      },
+      callbackError
+    );
   };
 
   /**
@@ -482,15 +518,21 @@ OWT_REST.API = (function(OWT_REST) {
   });
      */
 
-  var updateRoom = function(room, options, callback, callbackError) {
+  var updateRoom = function (room, options, callback, callbackError) {
     if (options && options.viewports) {
       options.views = viewportsToViews(options.viewports);
       delete options.viewports;
     }
-    send('PUT', 'rooms/' + room, (options || {}), function(roomRtn) {
-      var room = JSON.parse(roomRtn);
-      callback(room);
-    }, callbackError);
+    send(
+      'PUT',
+      'rooms/' + room,
+      options || {},
+      function (roomRtn) {
+        var room = JSON.parse(roomRtn);
+        callback(room);
+      },
+      callbackError
+    );
   };
 
   /**
@@ -511,17 +553,23 @@ OWT_REST.API = (function(OWT_REST) {
     console.log ('Error:', err);
   });
      */
-  var updateRoomPartially = function(room, items, callback, callbackError) {
-    send('PATCH', 'rooms/' + room, (items || []), function(roomRtn) {
-      var new_room = JSON.parse(roomRtn);
-      callback(new_room);
-    }, callbackError);
+  var updateRoomPartially = function (room, items, callback, callbackError) {
+    send(
+      'PATCH',
+      'rooms/' + room,
+      items || [],
+      function (roomRtn) {
+        var new_room = JSON.parse(roomRtn);
+        callback(new_room);
+      },
+      callbackError
+    );
   };
 
   /*
-     * * @callback onParticipantList
-     * * @param {Array.<{Object} ParticipantDetail>} participantList  -The list of object "ParticipantDetail" same as defined in "onParticipantDetail" callback.
-  */
+   * * @callback onParticipantList
+   * * @param {Array.<{Object} ParticipantDetail>} participantList  -The list of object "ParticipantDetail" same as defined in "onParticipantDetail" callback.
+   */
   /**
      * @function getParticipants
      * @desc This function lists participants currently in the specified room.
@@ -542,21 +590,27 @@ OWT_REST.API = (function(OWT_REST) {
     console.log(status, error);
   });
      */
-  var getParticipants = function(room, callback, callbackError) {
-    send('GET', 'rooms/' + room + '/participants/', undefined, function(participantsRtn) {
-      var participants = JSON.parse(participantsRtn);
-      callback(participants);
-    }, callbackError);
+  var getParticipants = function (room, callback, callbackError) {
+    send(
+      'GET',
+      'rooms/' + room + '/participants/',
+      undefined,
+      function (participantsRtn) {
+        var participants = JSON.parse(participantsRtn);
+        callback(participants);
+      },
+      callbackError
+    );
   };
 
   /*
-     * * @callback onParticipantDetail
-     * * @param {Object} ParticipantDetail           -The object containing the detailed info of the specified participant.
-     * * @param {string} ParticipantDetail.id        -The participant ID.
-     * * @param {string} ParticipantDetail.role      -The participant role.
-     * * @param {string} ParticipantDetail.user      -The user ID of the participant.
-     * * @param {Object} ParticipantDetail.permission      -The "Permission" object defined in section "3.3.1 Participant Joins a Room" in "Client-Portal Protocol" doc.
-  */
+   * * @callback onParticipantDetail
+   * * @param {Object} ParticipantDetail           -The object containing the detailed info of the specified participant.
+   * * @param {string} ParticipantDetail.id        -The participant ID.
+   * * @param {string} ParticipantDetail.role      -The participant role.
+   * * @param {string} ParticipantDetail.user      -The user ID of the participant.
+   * * @param {Object} ParticipantDetail.permission      -The "Permission" object defined in section "3.3.1 Participant Joins a Room" in "Client-Portal Protocol" doc.
+   */
   /**
      * @function getParticipant
      * @desc This function gets a participant's information from the specified room.
@@ -575,20 +629,26 @@ OWT_REST.API = (function(OWT_REST) {
     console.log(status, error);
   });
      */
-  var getParticipant = function(room, participant, callback, callbackError) {
+  var getParticipant = function (room, participant, callback, callbackError) {
     if (typeof participant !== 'string' || participant.trim().length === 0) {
       return callbackError('Invalid participant ID');
     }
-    send('GET', 'rooms/' + room + '/participants/' + participant, undefined, function(participantRtn) {
-      var p = JSON.parse(participantRtn);
-      callback(p);
-    }, callbackError);
+    send(
+      'GET',
+      'rooms/' + room + '/participants/' + participant,
+      undefined,
+      function (participantRtn) {
+        var p = JSON.parse(participantRtn);
+        callback(p);
+      },
+      callbackError
+    );
   };
 
   /*
-     * * @callback onParticipantDetail
-     * * @param {Object} participantDetail           -The object containing the updated detailed info of the specified participant, same as in getParticipant.
-  */
+   * * @callback onParticipantDetail
+   * * @param {Object} participantDetail           -The object containing the updated detailed info of the specified participant, same as in getParticipant.
+   */
   /**
      * @function updateParticipant
      * @desc This function updates the permission of a participant in the specified room.
@@ -608,17 +668,29 @@ OWT_REST.API = (function(OWT_REST) {
     console.log(status, error);
   });
      */
-  var updateParticipant = function(room, participant, items, callback, callbackError) {
+  var updateParticipant = function (
+    room,
+    participant,
+    items,
+    callback,
+    callbackError
+  ) {
     if (typeof participant !== 'string' || participant.trim().length === 0) {
       return callbackError('Invalid participant ID');
     }
     if (!(items instanceof Array)) {
       return callbackError('Invalid update list');
     }
-    send('PATCH', 'rooms/' + room + '/participants/' + participant, items, function(participantRtn) {
-      var p = JSON.parse(participantRtn);
-      callback(p);
-    }, callbackError);
+    send(
+      'PATCH',
+      'rooms/' + room + '/participants/' + participant,
+      items,
+      function (participantRtn) {
+        var p = JSON.parse(participantRtn);
+        callback(p);
+      },
+      callbackError
+    );
   };
 
   /**
@@ -639,20 +711,26 @@ OWT_REST.API = (function(OWT_REST) {
     console.log(status, error);
   });
      */
-  var dropParticipant = function(room, participant, callback, callbackError) {
+  var dropParticipant = function (room, participant, callback, callbackError) {
     if (typeof participant !== 'string' || participant.trim().length === 0) {
       return callbackError('Invalid participant ID');
     }
-    send('DELETE', 'rooms/' + room + '/participants/' + participant, undefined, function(participant) {
-      callback(participant);
-    }, callbackError);
+    send(
+      'DELETE',
+      'rooms/' + room + '/participants/' + participant,
+      undefined,
+      function (participant) {
+        callback(participant);
+      },
+      callbackError
+    );
   };
 
   /*
-     * * @callback onStreamList
-     * * @param {Array.<Object>} streamList
-     * * @param {Object} streamList[x]               -Object "StreamInfo" defined in section "3.3.1 Participant Joins a Room" in "Client-Portal Protocol" doc.
-  */
+   * * @callback onStreamList
+   * * @param {Array.<Object>} streamList
+   * * @param {Object} streamList[x]               -Object "StreamInfo" defined in section "3.3.1 Participant Joins a Room" in "Client-Portal Protocol" doc.
+   */
   /**
      * @function getStreams
      * @desc This function lists streams currently in the specified room.
@@ -673,17 +751,23 @@ OWT_REST.API = (function(OWT_REST) {
     console.log(status, error);
   });
      */
-  var getStreams = function(room, callback, callbackError) {
-    send('GET', 'rooms/' + room + '/streams/', undefined, function(streamsRtn) {
-      var streams = JSON.parse(streamsRtn);
-      callback(streams);
-    }, callbackError);
+  var getStreams = function (room, callback, callbackError) {
+    send(
+      'GET',
+      'rooms/' + room + '/streams/',
+      undefined,
+      function (streamsRtn) {
+        var streams = JSON.parse(streamsRtn);
+        callback(streams);
+      },
+      callbackError
+    );
   };
 
   /*
-     * * @callback onStreamInfo
-     * * @param {Object} streamInfo                  -Object "StreamInfo" defined in section "3.3.1 Participant Joins a Room" in "Client-Portal Protocol" doc.
-  */
+   * * @callback onStreamInfo
+   * * @param {Object} streamInfo                  -Object "StreamInfo" defined in section "3.3.1 Participant Joins a Room" in "Client-Portal Protocol" doc.
+   */
   /**
      * @function getStream
      * @desc This function gets a stream's information from the specified room.
@@ -702,20 +786,26 @@ OWT_REST.API = (function(OWT_REST) {
     console.log(status, error);
   });
      */
-  var getStream = function(room, stream, callback, callbackError) {
+  var getStream = function (room, stream, callback, callbackError) {
     if (typeof stream !== 'string' || stream.trim().length === 0) {
       return callbackError('Invalid stream ID');
     }
-    send('GET', 'rooms/' + room + '/streams/' + stream, undefined, function(streamRtn) {
-      var st = JSON.parse(streamRtn);
-      callback(st);
-    }, callbackError);
+    send(
+      'GET',
+      'rooms/' + room + '/streams/' + stream,
+      undefined,
+      function (streamRtn) {
+        var st = JSON.parse(streamRtn);
+        callback(st);
+      },
+      callbackError
+    );
   };
 
   /*
-     * * @callback onStreamInfo
-     * * @param {Object} streamInfo                  -Object "StreamInfo" defined in section "3.3.1 Participant Joins a Room" in "Client-Portal Protocol" doc.
-  */
+   * * @callback onStreamInfo
+   * * @param {Object} streamInfo                  -Object "StreamInfo" defined in section "3.3.1 Participant Joins a Room" in "Client-Portal Protocol" doc.
+   */
   /**
      * @function updateStream
      * @desc This function updates a stream's given attributes in the specified room.
@@ -735,17 +825,23 @@ OWT_REST.API = (function(OWT_REST) {
     console.log(status, error);
   });
      */
-  var updateStream = function(room, stream, items, callback, callbackError) {
+  var updateStream = function (room, stream, items, callback, callbackError) {
     if (typeof stream !== 'string' || stream.trim().length === 0) {
       return callbackError('Invalid stream ID');
     }
     if (!(items instanceof Array)) {
       return callbackError('Invalid update list');
     }
-    send('PATCH', 'rooms/' + room + '/streams/' + stream, items, function(streamRtn) {
-      var st = JSON.parse(streamRtn);
-      callback(st);
-    }, callbackError);
+    send(
+      'PATCH',
+      'rooms/' + room + '/streams/' + stream,
+      items,
+      function (streamRtn) {
+        var st = JSON.parse(streamRtn);
+        callback(st);
+      },
+      callbackError
+    );
   };
 
   /**
@@ -766,19 +862,25 @@ OWT_REST.API = (function(OWT_REST) {
     console.log(status, error);
   });
      */
-  var deleteStream = function(room, stream, callback, callbackError) {
+  var deleteStream = function (room, stream, callback, callbackError) {
     if (typeof stream !== 'string' || stream.trim().length === 0) {
       return callbackError('Invalid stream ID');
     }
-    send('DELETE', 'rooms/' + room + '/streams/' + stream, undefined, function(result) {
-      callback(result);
-    }, callbackError);
+    send(
+      'DELETE',
+      'rooms/' + room + '/streams/' + stream,
+      undefined,
+      function (result) {
+        callback(result);
+      },
+      callbackError
+    );
   };
 
   /*
-     * * @callback onStartingStreamingInOK
-     * * @param {Object} streamInfo                  -The object "StreamInfo" defined in section "3.3.1 Participant Joins a Room" in "Client-Portal Protocol" doc.
-  */
+   * * @callback onStartingStreamingInOK
+   * * @param {Object} streamInfo                  -The object "StreamInfo" defined in section "3.3.1 Participant Joins a Room" in "Client-Portal Protocol" doc.
+   */
   /**
    ***
      * @function startStreamingIn
@@ -813,19 +915,32 @@ OWT_REST.API = (function(OWT_REST) {
     console.log(status, error);
   });
      */
-  var startStreamingIn = function(room, url, transport, media, callback, callbackError) {
+  var startStreamingIn = function (
+    room,
+    url,
+    transport,
+    media,
+    callback,
+    callbackError
+  ) {
     var pub_req = {
       connection: {
         url: url,
         transportProtocol: transport.protocol,
-        bufferSize: transport.bufferSize
+        bufferSize: transport.bufferSize,
       },
-      media: media
+      media: media,
     };
-    send('POST', 'rooms/' + room + '/streaming-ins/', pub_req, function(streamRtn) {
-      var st = JSON.parse(streamRtn);
-      callback(st);
-    }, callbackError);
+    send(
+      'POST',
+      'rooms/' + room + '/streaming-ins/',
+      pub_req,
+      function (streamRtn) {
+        var st = JSON.parse(streamRtn);
+        callback(st);
+      },
+      callbackError
+    );
   };
 
   /**
@@ -846,20 +961,26 @@ OWT_REST.API = (function(OWT_REST) {
     console.log(status, error);
   });
      */
-  var stopStreamingIn = function(room, stream, callback, callbackError) {
+  var stopStreamingIn = function (room, stream, callback, callbackError) {
     if (typeof stream !== 'string' || stream.trim().length === 0) {
       return callbackError('Invalid stream ID');
     }
-    send('DELETE', 'rooms/' + room + '/streaming-ins/' + stream, undefined, function(result) {
-      callback(result);
-    }, callbackError);
+    send(
+      'DELETE',
+      'rooms/' + room + '/streaming-ins/' + stream,
+      undefined,
+      function (result) {
+        callback(result);
+      },
+      callbackError
+    );
   };
 
   /*
-     * * @callback onStreamingOutList
-     * * @param {Array.<id: string, protocol: string, url: string, parameters: Object, media: Object>} streamingOutList    -The list of streaming-outs.
-     * * @param {Object} streamingOutList[x].media   -The media description of the streaming-out, which must follow the definition of object "MediaSubOptions" in section "3.3.11 Participant Starts a Subscription" in "Client-Portal Protocol.md" doc.
-  */
+   * * @callback onStreamingOutList
+   * * @param {Array.<id: string, protocol: string, url: string, parameters: Object, media: Object>} streamingOutList    -The list of streaming-outs.
+   * * @param {Object} streamingOutList[x].media   -The media description of the streaming-out, which must follow the definition of object "MediaSubOptions" in section "3.3.11 Participant Starts a Subscription" in "Client-Portal Protocol.md" doc.
+   */
   /**
      * @function getStreamingOuts
      * @desc This function gets all the ongoing streaming-outs in the specified room.
@@ -876,22 +997,28 @@ OWT_REST.API = (function(OWT_REST) {
     console.log(status, error);
   });
      */
-  var getStreamingOuts = function(room, callback, callbackError) {
-    send('GET', 'rooms/' + room + '/streaming-outs/', undefined, function(streamingOutList) {
-      var result = JSON.parse(streamingOutList);
-      callback(result);
-    }, callbackError);
+  var getStreamingOuts = function (room, callback, callbackError) {
+    send(
+      'GET',
+      'rooms/' + room + '/streaming-outs/',
+      undefined,
+      function (streamingOutList) {
+        var result = JSON.parse(streamingOutList);
+        callback(result);
+      },
+      callbackError
+    );
   };
 
   /*
-     * * @callback onStartingStreamingOutOK
-     * * @param {Object} streamingOutInfo              -The object containing the information of the external streaming-out.
-     * * @param {string} streamingOutInfo.id         -The streaming-out ID.
-     * * @param {string} streamingOutInfo.protocol   -The streaming-out protocol.
-     * * @param {string} streamingOutInfo.url        -The URL of the target streaming-out.
-     * * @param {string} streamingOutInfo.parameters -The connection parameters of the target streaming-out.
-     * * @param {Object} streamingOutInfo.media      -The media description of the streaming-out, which must follow the definition of object "MediaSubOptions" in section "3.3.11 Participant Starts a Subscription" in "Client-Portal Protocol.md" doc.
-  */
+   * * @callback onStartingStreamingOutOK
+   * * @param {Object} streamingOutInfo              -The object containing the information of the external streaming-out.
+   * * @param {string} streamingOutInfo.id         -The streaming-out ID.
+   * * @param {string} streamingOutInfo.protocol   -The streaming-out protocol.
+   * * @param {string} streamingOutInfo.url        -The URL of the target streaming-out.
+   * * @param {string} streamingOutInfo.parameters -The connection parameters of the target streaming-out.
+   * * @param {Object} streamingOutInfo.media      -The media description of the streaming-out, which must follow the definition of object "MediaSubOptions" in section "3.3.11 Participant Starts a Subscription" in "Client-Portal Protocol.md" doc.
+   */
   /**
      * @function startStreamingOut
      * @desc This function starts a streaming-out to the specified room.
@@ -935,24 +1062,38 @@ OWT_REST.API = (function(OWT_REST) {
     console.log(status, error);
   });
      */
-  var startStreamingOut = function(room, protocol, url, parameters, media, callback, callbackError) {
+  var startStreamingOut = function (
+    room,
+    protocol,
+    url,
+    parameters,
+    media,
+    callback,
+    callbackError
+  ) {
     var options = {
       protocol: protocol,
       url: url,
       parameters: parameters,
-      media: media
+      media: media,
     };
 
-    send('POST', 'rooms/' + room + '/streaming-outs/', options, function(streamingOutRtn) {
-      var result = JSON.parse(streamingOutRtn);
-      callback(result);
-    }, callbackError);
+    send(
+      'POST',
+      'rooms/' + room + '/streaming-outs/',
+      options,
+      function (streamingOutRtn) {
+        var result = JSON.parse(streamingOutRtn);
+        callback(result);
+      },
+      callbackError
+    );
   };
 
   /*
-     * * @callback onUpdatingStreamingOutOK
-     * * @param {Object} streamingOutInfo              -The object containing the information of the updated streaming-out, same as defined in onStartingStreamingOutOk.
-  */
+   * * @callback onUpdatingStreamingOutOK
+   * * @param {Object} streamingOutInfo              -The object containing the information of the updated streaming-out, same as defined in onStartingStreamingOutOk.
+   */
   /**
      * @function updateStreamingOut
      * @desc This function updates a streaming-out's given attributes in the specified room.
@@ -972,17 +1113,23 @@ OWT_REST.API = (function(OWT_REST) {
     console.log(status, error);
   });
      */
-  var updateStreamingOut = function(room, id, items, callback, callbackError) {
+  var updateStreamingOut = function (room, id, items, callback, callbackError) {
     if (typeof id !== 'string' || id.trim().length === 0) {
       return callbackError('Invalid streamingOut ID');
     }
     if (!(items instanceof Array)) {
       return callbackError('Invalid update list');
     }
-    send('PATCH', 'rooms/' + room + '/streaming-outs/' + id, items, function(streamingOutRtn) {
-      var result = JSON.parse(streamingOutRtn);
-      callback(result);
-    }, callbackError);
+    send(
+      'PATCH',
+      'rooms/' + room + '/streaming-outs/' + id,
+      items,
+      function (streamingOutRtn) {
+        var result = JSON.parse(streamingOutRtn);
+        callback(result);
+      },
+      callbackError
+    );
   };
 
   /**
@@ -1003,23 +1150,29 @@ OWT_REST.API = (function(OWT_REST) {
     console.log(status, error);
   });
      */
-  var stopStreamingOut = function(room, id, callback, callbackError) {
+  var stopStreamingOut = function (room, id, callback, callbackError) {
     if (typeof id !== 'string' || id.trim().length === 0) {
       return callbackError('Invalid streamingOut ID');
     }
-    send('DELETE', 'rooms/' + room + '/streaming-outs/' + id, undefined, function(result) {
-      callback(result);
-    }, callbackError);
+    send(
+      'DELETE',
+      'rooms/' + room + '/streaming-outs/' + id,
+      undefined,
+      function (result) {
+        callback(result);
+      },
+      callbackError
+    );
   };
 
   /*
-     * * @callback onRecordingList
-     * * @param {Array.<{id: string, storage: Object, media: Object}>} recordingList            -The recording list.
-     * * @param {Object} recordingList[x].storage       -The storage information of the recording.
-     * * @param {string} recordingList[x].storage.host  -The host-name or IP address where the recording file is stored.
-     * * @param {string} recordingList[x].storage.file  -The full-path name of the recording file.
-     * * @param {Object} recordingList[x].media         -The media description of the recording, which must follow the definition of object "MediaSubOptions" in section "3.3.11 Participant Starts a Subscription" in "Client-Portal Protocol.md" doc.
-  */
+   * * @callback onRecordingList
+   * * @param {Array.<{id: string, storage: Object, media: Object}>} recordingList            -The recording list.
+   * * @param {Object} recordingList[x].storage       -The storage information of the recording.
+   * * @param {string} recordingList[x].storage.host  -The host-name or IP address where the recording file is stored.
+   * * @param {string} recordingList[x].storage.file  -The full-path name of the recording file.
+   * * @param {Object} recordingList[x].media         -The media description of the recording, which must follow the definition of object "MediaSubOptions" in section "3.3.11 Participant Starts a Subscription" in "Client-Portal Protocol.md" doc.
+   */
   /**
      * @function getRecordings
      * @desc This function gets the all the ongoing recordings in the specified room.
@@ -1036,22 +1189,28 @@ OWT_REST.API = (function(OWT_REST) {
     console.log(status, error);
   });
      */
-  var getRecordings = function(room, callback, callbackError) {
-    send('GET', 'rooms/' + room + '/recordings/', undefined, function(recordingList) {
-      var result = JSON.parse(recordingList);
-      callback(result);
-    }, callbackError);
+  var getRecordings = function (room, callback, callbackError) {
+    send(
+      'GET',
+      'rooms/' + room + '/recordings/',
+      undefined,
+      function (recordingList) {
+        var result = JSON.parse(recordingList);
+        callback(result);
+      },
+      callbackError
+    );
   };
 
   /*
-     * * @callback onStartingRecordingOK
-     * * @param {Object} recordingInfo               -The object containing the information of the server-side recording.
-     * * @param {string} recordingInfo.id            -The recording ID.
-     * * @param {Object} recordingInfo.storage       -The storage information of the recording.
-     * * @param {string} recordingInfo.storage.host  -The host-name or IP address where the recording file is stored.
-     * * @param {string} recordingInfo.storage.file  -The full-path name of the recording file.
-     * * @param {Object} recordingInfo.media         -The media description of the recording, which must follow the definition of object "MediaSubOptions" in section "3.3.11 Participant Starts a Subscription" in "Client-Portal Protocol.md" doc.
-  */
+   * * @callback onStartingRecordingOK
+   * * @param {Object} recordingInfo               -The object containing the information of the server-side recording.
+   * * @param {string} recordingInfo.id            -The recording ID.
+   * * @param {Object} recordingInfo.storage       -The storage information of the recording.
+   * * @param {string} recordingInfo.storage.host  -The host-name or IP address where the recording file is stored.
+   * * @param {string} recordingInfo.storage.file  -The full-path name of the recording file.
+   * * @param {Object} recordingInfo.media         -The media description of the recording, which must follow the definition of object "MediaSubOptions" in section "3.3.11 Participant Starts a Subscription" in "Client-Portal Protocol.md" doc.
+   */
   /**
      * @function startRecording
      * @desc This function starts a recording in the specified room.
@@ -1082,22 +1241,34 @@ OWT_REST.API = (function(OWT_REST) {
     console.log(status, error);
   });
      */
-  var startRecording = function(room, container, media, callback, callbackError) {
+  var startRecording = function (
+    room,
+    container,
+    media,
+    callback,
+    callbackError
+  ) {
     var options = {
       container: container,
-      media: media
+      media: media,
     };
 
-    send('POST', 'rooms/' + room + '/recordings/', options, function(recordingRtn) {
-      var result = JSON.parse(recordingRtn);
-      callback(result);
-    }, callbackError);
+    send(
+      'POST',
+      'rooms/' + room + '/recordings/',
+      options,
+      function (recordingRtn) {
+        var result = JSON.parse(recordingRtn);
+        callback(result);
+      },
+      callbackError
+    );
   };
 
   /*
-     * * @callback onUpdatingRecordingOK
-     * * @param {Object} recordingInfo               -The object containing the information of the server-side recording, same as defined in onStartingRecordingOk.
-  */
+   * * @callback onUpdatingRecordingOK
+   * * @param {Object} recordingInfo               -The object containing the information of the server-side recording, same as defined in onStartingRecordingOk.
+   */
   /**
      * @function updateRecording
      * @desc This function updates a recording's given attributes in the specified room.
@@ -1117,17 +1288,23 @@ OWT_REST.API = (function(OWT_REST) {
     console.log(status, error);
   });
      */
-  var updateRecording = function(room, id, items, callback, callbackError) {
+  var updateRecording = function (room, id, items, callback, callbackError) {
     if (typeof id !== 'string' || id.trim().length === 0) {
       return callbackError('Invalid recording ID');
     }
     if (!(items instanceof Array)) {
       return callbackError('Invalid update list');
     }
-    send('PATCH', 'rooms/' + room + '/recordings/' + id, items, function(recordingRtn) {
-      var result = JSON.parse(recordingRtn);
-      callback(result);
-    }, callbackError);
+    send(
+      'PATCH',
+      'rooms/' + room + '/recordings/' + id,
+      items,
+      function (recordingRtn) {
+        var result = JSON.parse(recordingRtn);
+        callback(result);
+      },
+      callbackError
+    );
   };
 
   /**
@@ -1148,19 +1325,25 @@ OWT_REST.API = (function(OWT_REST) {
     console.log(status, error);
   });
      */
-  var stopRecording = function(room, id, callback, callbackError) {
+  var stopRecording = function (room, id, callback, callbackError) {
     if (typeof id !== 'string' || id.trim().length === 0) {
       return callbackError('Invalid recording ID');
     }
-    send('DELETE', 'rooms/' + room + '/recordings/' + id, undefined, function(result) {
-      callback(result);
-    }, callbackError);
+    send(
+      'DELETE',
+      'rooms/' + room + '/recordings/' + id,
+      undefined,
+      function (result) {
+        callback(result);
+      },
+      callbackError
+    );
   };
 
   /*
-     * * @callback onSipCallList
-     * * @param {Array.<{Object} SipCallInfo>} sipCallList -The sip call list, the 'SipCallInfo' is the same as defined in onSipCallOK callback parameters.
-  */
+   * * @callback onSipCallList
+   * * @param {Array.<{Object} SipCallInfo>} sipCallList -The sip call list, the 'SipCallInfo' is the same as defined in onSipCallOK callback parameters.
+   */
   /**
      * @function getSipCalls
      * @desc This function gets the all the ongoing sip calls in the specified room.
@@ -1177,24 +1360,30 @@ OWT_REST.API = (function(OWT_REST) {
     console.log(status, error);
   });
      */
-  var getSipCalls = function(room, callback, callbackError) {
-    send('GET', 'rooms/' + room + '/sipcalls/', undefined, function(sipCallList) {
-      var result = JSON.parse(sipCallList);
-      callback(result);
-    }, callbackError);
+  var getSipCalls = function (room, callback, callbackError) {
+    send(
+      'GET',
+      'rooms/' + room + '/sipcalls/',
+      undefined,
+      function (sipCallList) {
+        var result = JSON.parse(sipCallList);
+        callback(result);
+      },
+      callbackError
+    );
   };
 
   /*
-     * * @callback onSipCallOK
-     * * @param {Object} SipCallInfo                       -The sip call information.
-     * * @param {string} SipCallInfo.id                    -Sip call ID.
-     * * @param {string 'dial-in' | 'dial-out'} SipCallInfo.type      -Sip call type.
-     * * @param {string} SipCallInfo.peer                  -Peer URI of the sip call.
-     * * @param {Object} SipCallInfo.input                 -Object "StreamInfo" defined in section "3.3.1 Participant Joins a Room" in "Client-Portal Protocol" doc.
-     * * @param {Object} SipCallInfo.output                -The subscription consumed by sip peer.
-     * * @param {string} SipCallInfo.output.id             -ID of the subscription.
-     * * @param {Object} SipCallInfo.output.media          -The media description of the recording, which must follow the definition of object "MediaSubOptions" in section "3.3.11 Participant Starts a Subscription" in "Client-Portal Protocol.md" doc.
-  */
+   * * @callback onSipCallOK
+   * * @param {Object} SipCallInfo                       -The sip call information.
+   * * @param {string} SipCallInfo.id                    -Sip call ID.
+   * * @param {string 'dial-in' | 'dial-out'} SipCallInfo.type      -Sip call type.
+   * * @param {string} SipCallInfo.peer                  -Peer URI of the sip call.
+   * * @param {Object} SipCallInfo.input                 -Object "StreamInfo" defined in section "3.3.1 Participant Joins a Room" in "Client-Portal Protocol" doc.
+   * * @param {Object} SipCallInfo.output                -The subscription consumed by sip peer.
+   * * @param {string} SipCallInfo.output.id             -ID of the subscription.
+   * * @param {Object} SipCallInfo.output.media          -The media description of the recording, which must follow the definition of object "MediaSubOptions" in section "3.3.11 Participant Starts a Subscription" in "Client-Portal Protocol.md" doc.
+   */
   /**
      * @function makeSipCall
      * @desc This function makes a SIP call to the specified peer in the specified room.
@@ -1235,23 +1424,36 @@ OWT_REST.API = (function(OWT_REST) {
     console.log(status, error);
   });
      */
-  var makeSipCall = function(room, peerUri, mediaIn, mediaOut, callback, callbackError) {
+  var makeSipCall = function (
+    room,
+    peerUri,
+    mediaIn,
+    mediaOut,
+    callback,
+    callbackError
+  ) {
     var options = {
       peerURI: peerUri,
       mediaIn: mediaIn,
-      mediaOut: mediaOut
+      mediaOut: mediaOut,
     };
 
-    send('POST', 'rooms/' + room + '/sipcalls/', options, function(sipCallInfo) {
-      var result = JSON.parse(sipCallInfo);
-      callback(result);
-    }, callbackError);
+    send(
+      'POST',
+      'rooms/' + room + '/sipcalls/',
+      options,
+      function (sipCallInfo) {
+        var result = JSON.parse(sipCallInfo);
+        callback(result);
+      },
+      callbackError
+    );
   };
 
   /*
-     * * @callback onUpdatingSipCallOK
-     * * @param {Object} SipCallInfo                 -The updated sip call information, same as defined in parameters of callback onSipCallOk.
-  */
+   * * @callback onUpdatingSipCallOK
+   * * @param {Object} SipCallInfo                 -The updated sip call information, same as defined in parameters of callback onSipCallOk.
+   */
   /**
      * @function updateSipCall
      * @desc This function updates a sip call's specified output attributes in the specified room.
@@ -1271,17 +1473,23 @@ OWT_REST.API = (function(OWT_REST) {
     console.log(status, error);
   });
      */
-  var updateSipCall = function(room, id, items, callback, callbackError) {
+  var updateSipCall = function (room, id, items, callback, callbackError) {
     if (typeof id !== 'string' || id.trim().length === 0) {
       return callbackError('Invalid sip call ID');
     }
     if (!(items instanceof Array)) {
       return callbackError('Invalid update list');
     }
-    send('PATCH', 'rooms/' + room + '/sipcalls/' + id, items, function(sipCallInfoRtn) {
-      var result = JSON.parse(sipCallInfoRtn);
-      callback(result);
-    }, callbackError);
+    send(
+      'PATCH',
+      'rooms/' + room + '/sipcalls/' + id,
+      items,
+      function (sipCallInfoRtn) {
+        var result = JSON.parse(sipCallInfoRtn);
+        callback(result);
+      },
+      callbackError
+    );
   };
 
   /**
@@ -1302,22 +1510,28 @@ OWT_REST.API = (function(OWT_REST) {
     console.log(status, error);
   });
      */
-  var endSipCall = function(room, id, callback, callbackError) {
+  var endSipCall = function (room, id, callback, callbackError) {
     if (typeof id !== 'string' || id.trim().length === 0) {
       return callbackError('Invalid sip call ID');
     }
-    send('DELETE', 'rooms/' + room + '/sipcalls/' + id, undefined, function(result) {
-      callback(result);
-    }, callbackError);
+    send(
+      'DELETE',
+      'rooms/' + room + '/sipcalls/' + id,
+      undefined,
+      function (result) {
+        callback(result);
+      },
+      callbackError
+    );
   };
 
   /*
-     * * @callback onAnalyticsList
-     * * @param {Array.<{id: string, analytics: Object, media: Object}>} analyticsList            -The analytics list.
-     * * @param {Object} analyticsList[x].analytics            -The information of the analytics.
-     * * @param {string} analyticsList[x].analytics.algorithm  -The algorithm of the analytics.
-     * * @param {Object} analyticsList[x].media                -The media description of the analytics, which must follow the definition of object "MediaSubOptions" in section "3.3.11 Participant Starts a Subscription" in "Client-Portal Protocol.md" doc.
-  */
+   * * @callback onAnalyticsList
+   * * @param {Array.<{id: string, analytics: Object, media: Object}>} analyticsList            -The analytics list.
+   * * @param {Object} analyticsList[x].analytics            -The information of the analytics.
+   * * @param {string} analyticsList[x].analytics.algorithm  -The algorithm of the analytics.
+   * * @param {Object} analyticsList[x].media                -The media description of the analytics, which must follow the definition of object "MediaSubOptions" in section "3.3.11 Participant Starts a Subscription" in "Client-Portal Protocol.md" doc.
+   */
   /**
      * @function getAnalytics
      * @desc This function gets the all the ongoing analytics in the specified room.
@@ -1334,21 +1548,27 @@ OWT_REST.API = (function(OWT_REST) {
     console.log(status, error);
   });
      */
-  var getAnalytics = function(room, callback, callbackError) {
-    send('GET', 'rooms/' + room + '/analytics/', undefined, function(analyticsList) {
-      var result = JSON.parse(analyticsList);
-      callback(result);
-    }, callbackError);
+  var getAnalytics = function (room, callback, callbackError) {
+    send(
+      'GET',
+      'rooms/' + room + '/analytics/',
+      undefined,
+      function (analyticsList) {
+        var result = JSON.parse(analyticsList);
+        callback(result);
+      },
+      callbackError
+    );
   };
 
   /*
-     * * @callback onStartingAnalyticsOK
-     * * @param {Object} analyticsInfo               -The object containing the information of the server-side analytics.
-     * * @param {string} analyticsInfo.id            -The analytics ID.
-     * * @param {Object} analyticsInfo.analytics     -The information of the analytics.
-     * * @param {string} analyticsInfo.analytics.algorithm  -The algorithm of the analytics.
-     * * @param {Object} analyticsInfo.media         -The media description of the analytics, which must follow the definition of object "MediaSubOptions" in section "3.3.11 Participant Starts a Subscription" in "Client-Portal Protocol.md" doc.
-  */
+   * * @callback onStartingAnalyticsOK
+   * * @param {Object} analyticsInfo               -The object containing the information of the server-side analytics.
+   * * @param {string} analyticsInfo.id            -The analytics ID.
+   * * @param {Object} analyticsInfo.analytics     -The information of the analytics.
+   * * @param {string} analyticsInfo.analytics.algorithm  -The algorithm of the analytics.
+   * * @param {Object} analyticsInfo.media         -The media description of the analytics, which must follow the definition of object "MediaSubOptions" in section "3.3.11 Participant Starts a Subscription" in "Client-Portal Protocol.md" doc.
+   */
   /**
      * @function startAnalytics
      * @desc This function starts a analytics in the specified room.
@@ -1379,16 +1599,28 @@ OWT_REST.API = (function(OWT_REST) {
     console.log(status, error);
   });
      */
-  var startAnalytics = function(room, algorithm, media, callback, callbackError) {
+  var startAnalytics = function (
+    room,
+    algorithm,
+    media,
+    callback,
+    callbackError
+  ) {
     var options = {
       algorithm: algorithm,
-      media: media
+      media: media,
     };
 
-    send('POST', 'rooms/' + room + '/analytics/', options, function(analyticsRtn) {
-      var result = JSON.parse(analyticsRtn);
-      callback(result);
-    }, callbackError);
+    send(
+      'POST',
+      'rooms/' + room + '/analytics/',
+      options,
+      function (analyticsRtn) {
+        var result = JSON.parse(analyticsRtn);
+        callback(result);
+      },
+      callbackError
+    );
   };
 
   /**
@@ -1409,13 +1641,19 @@ OWT_REST.API = (function(OWT_REST) {
     console.log(status, error);
   });
      */
-  var stopAnalytics = function(room, id, callback, callbackError) {
+  var stopAnalytics = function (room, id, callback, callbackError) {
     if (typeof id !== 'string' || id.trim().length === 0) {
       return callbackError('Invalid analytics ID');
     }
-    send('DELETE', 'rooms/' + room + '/analytics/' + id, undefined, function(result) {
-      callback(result);
-    }, callbackError);
+    send(
+      'DELETE',
+      'rooms/' + room + '/analytics/' + id,
+      undefined,
+      function (result) {
+        callback(result);
+      },
+      callbackError
+    );
   };
 
   /**
@@ -1441,13 +1679,30 @@ OWT_REST.API = (function(OWT_REST) {
     console.log(status, error);
   });
      */
-  var createToken = function(room, user, role, preference, callback, callbackError) {
-    if (typeof room !== 'string' || typeof user !== 'string' || typeof role !== 'string') {
+  var createToken = function (
+    room,
+    user,
+    role,
+    preference,
+    callback,
+    callbackError
+  ) {
+    if (
+      typeof room !== 'string' ||
+      typeof user !== 'string' ||
+      typeof role !== 'string'
+    ) {
       if (typeof callbackError === 'function')
         callbackError(400, 'Invalid argument.');
       return;
     }
-    send('POST', 'rooms/' + room + '/tokens/', {preference: preference, user: user, role: role}, callback, callbackError);
+    send(
+      'POST',
+      'rooms/' + room + '/tokens/',
+      { preference: preference, user: user, role: role },
+      callback,
+      callbackError
+    );
   };
 
   return {
@@ -1501,6 +1756,8 @@ OWT_REST.API = (function(OWT_REST) {
     endSipCall: endSipCall,
 
     //Tokens management.
-    createToken: createToken
+    createToken: createToken,
   };
-}(OWT_REST));
+};
+
+export default REST;
