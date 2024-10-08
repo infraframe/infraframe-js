@@ -11,9 +11,9 @@ import * as MediaFormatModule from './mediaformat.js';
 /**
  * @class AudioTrackConstraints
  * @classDesc Constraints for creating an audio MediaStreamTrack.
- * @memberof Owt.Base
+ * @memberof Infraframe.Base
  * @constructor
- * @param {Owt.Base.AudioSourceInfo} source Source info of this audio track.
+ * @param {Infraframe.Base.AudioSourceInfo} source Source info of this audio track.
  */
 export class AudioTrackConstraints {
   // eslint-disable-next-line require-jsdoc
@@ -24,14 +24,14 @@ export class AudioTrackConstraints {
     }
     /**
      * @member {string} source
-     * @memberof Owt.Base.AudioTrackConstraints
+     * @memberof Infraframe.Base.AudioTrackConstraints
      * @desc Values could be "mic", "screen-cast", "file" or "mixed".
      * @instance
      */
     this.source = source;
     /**
      * @member {string} deviceId
-     * @memberof Owt.Base.AudioTrackConstraints
+     * @memberof Infraframe.Base.AudioTrackConstraints
      * @desc Do not provide deviceId if source is not "mic".
      * @instance
      * @see https://w3c.github.io/mediacapture-main/#def-constraint-deviceId
@@ -43,9 +43,9 @@ export class AudioTrackConstraints {
 /**
  * @class VideoTrackConstraints
  * @classDesc Constraints for creating a video MediaStreamTrack.
- * @memberof Owt.Base
+ * @memberof Infraframe.Base
  * @constructor
- * @param {Owt.Base.VideoSourceInfo} source Source info of this video track.
+ * @param {Infraframe.Base.VideoSourceInfo} source Source info of this video track.
  */
 export class VideoTrackConstraints {
   // eslint-disable-next-line require-jsdoc
@@ -56,14 +56,14 @@ export class VideoTrackConstraints {
     }
     /**
      * @member {string} source
-     * @memberof Owt.Base.VideoTrackConstraints
+     * @memberof Infraframe.Base.VideoTrackConstraints
      * @desc Values could be "camera", "screen-cast", "file" or "mixed".
      * @instance
      */
     this.source = source;
     /**
      * @member {string} deviceId
-     * @memberof Owt.Base.VideoTrackConstraints
+     * @memberof Infraframe.Base.VideoTrackConstraints
      * @desc Do not provide deviceId if source is not "camera".
      * @instance
      * @see https://w3c.github.io/mediacapture-main/#def-constraint-deviceId
@@ -72,15 +72,15 @@ export class VideoTrackConstraints {
     this.deviceId = undefined;
 
     /**
-     * @member {Owt.Base.Resolution} resolution
-     * @memberof Owt.Base.VideoTrackConstraints
+     * @member {Infraframe.Base.Resolution} resolution
+     * @memberof Infraframe.Base.VideoTrackConstraints
      * @instance
      */
     this.resolution = undefined;
 
     /**
      * @member {number} frameRate
-     * @memberof Owt.Base.VideoTrackConstraints
+     * @memberof Infraframe.Base.VideoTrackConstraints
      * @instance
      */
     this.frameRate = undefined;
@@ -89,23 +89,23 @@ export class VideoTrackConstraints {
 /**
  * @class StreamConstraints
  * @classDesc Constraints for creating a MediaStream from screen mic and camera.
- * @memberof Owt.Base
+ * @memberof Infraframe.Base
  * @constructor
- * @param {?Owt.Base.AudioTrackConstraints} audioConstraints
- * @param {?Owt.Base.VideoTrackConstraints} videoConstraints
+ * @param {?Infraframe.Base.AudioTrackConstraints} audioConstraints
+ * @param {?Infraframe.Base.VideoTrackConstraints} videoConstraints
  */
 export class StreamConstraints {
   // eslint-disable-next-line require-jsdoc
   constructor(audioConstraints = false, videoConstraints = false) {
     /**
-     * @member {Owt.Base.MediaStreamTrackDeviceConstraintsForAudio} audio
-     * @memberof Owt.Base.MediaStreamDeviceConstraints
+     * @member {Infraframe.Base.MediaStreamTrackDeviceConstraintsForAudio} audio
+     * @memberof Infraframe.Base.MediaStreamDeviceConstraints
      * @instance
      */
     this.audio = audioConstraints;
     /**
-     * @member {Owt.Base.MediaStreamTrackDeviceConstraintsForVideo} Video
-     * @memberof Owt.Base.MediaStreamDeviceConstraints
+     * @member {Infraframe.Base.MediaStreamTrackDeviceConstraintsForVideo} Video
+     * @memberof Infraframe.Base.MediaStreamDeviceConstraints
      * @instance
      */
     this.video = videoConstraints;
@@ -122,7 +122,7 @@ function isVideoConstrainsForScreenCast(constraints) {
  * @class MediaStreamFactory
  * @classDesc A factory to create MediaStream. You can also create MediaStream
  * by yourself.
- * @memberof Owt.Base
+ * @memberof Infraframe.Base
  */
 export class MediaStreamFactory {
   /**
@@ -131,7 +131,7 @@ export class MediaStreamFactory {
    * @desc Create a MediaStream with given constraints. If you want to create a
    * MediaStream for screen cast, please make sure both audio and video's source
    * are "screen-cast".
-   * @memberof Owt.Base.MediaStreamFactory
+   * @memberof Infraframe.Base.MediaStreamFactory
    * @return {Promise<MediaStream, Error>} Return a promise that is resolved
    * when stream is successfully created, or rejected if one of the following
    * error happened:
@@ -140,7 +140,7 @@ export class MediaStreamFactory {
    * - Cannot obtain necessary permission or operation is canceled by user.
    * - Video source is screen cast, while audio source is not.
    * - Audio source is screen cast, while video source is disabled.
-   * @param {Owt.Base.StreamConstraints} constraints
+   * @param {Infraframe.Base.StreamConstraints} constraints
    */
   static createMediaStream(constraints) {
     if (typeof constraints !== 'object' ||

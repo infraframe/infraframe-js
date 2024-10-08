@@ -10,7 +10,7 @@
 'use strict';
 
 import Logger from '../base/logger.js';
-import {EventDispatcher, MessageEvent, OwtEvent} from '../base/event.js';
+import {EventDispatcher, MessageEvent, InfraframeEvent} from '../base/event.js';
 import {Publication} from '../base/publication.js';
 import * as Utils from '../base/utils.js';
 import * as ErrorModule from './error.js';
@@ -21,7 +21,7 @@ import {TransportSettings, TransportType} from '../base/transport.js';
 /**
  * @class P2PPeerConnectionChannelEvent
  * @desc Event for Stream.
- * @memberOf Owt.P2P
+ * @memberOf Infraframe.P2P
  * @private
  * */
 export class P2PPeerConnectionChannelEvent extends Event {
@@ -58,7 +58,7 @@ const sysInfo = Utils.sysInfo();
  * interactions between this endpoint (local) and a remote endpoint. Only one
  * PeerConnectionChannel is alive for a local - remote endpoint pair at any
  * given time.
- * @memberOf Owt.P2P
+ * @memberOf Infraframe.P2P
  * @private
  */
 class P2PPeerConnectionChannel extends EventDispatcher {
@@ -331,7 +331,7 @@ class P2PPeerConnectionChannel extends EventDispatcher {
             const publication = new Publication(
                 id, transport, () => {
                   this._unpublish(targetStream).then(() => {
-                    publication.dispatchEvent(new OwtEvent('ended'));
+                    publication.dispatchEvent(new InfraframeEvent('ended'));
                   }, (err) => {
                   // Use debug mode because this error usually doesn't block stopping a publication.
                     Logger.debug(
@@ -670,7 +670,7 @@ class P2PPeerConnectionChannel extends EventDispatcher {
     }
     this._sendSignalingMessage(SignalingType.TRACKS_REMOVED,
         this._remoteStreamInfo.get(stream.mediaStream.id).trackIds);
-    const event = new OwtEvent('ended');
+    const event = new InfraframeEvent('ended');
     stream.dispatchEvent(event);
   }
 
@@ -1027,11 +1027,11 @@ class P2PPeerConnectionChannel extends EventDispatcher {
     this._sendDataPromises.clear();
     // Fire ended event if publication or remote stream exists.
     this._publishedStreams.forEach((publication) => {
-      publication.dispatchEvent(new OwtEvent('ended'));
+      publication.dispatchEvent(new InfraframeEvent('ended'));
     });
     this._publishedStreams.clear();
     this._remoteStreams.forEach((stream) => {
-      stream.dispatchEvent(new OwtEvent('ended'));
+      stream.dispatchEvent(new InfraframeEvent('ended'));
     });
     this._remoteStreams = [];
     if (!this._disposed) {

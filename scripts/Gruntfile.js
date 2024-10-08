@@ -2,7 +2,7 @@
 module.exports = function(grunt) {
 
   const sdkEntry = 'src/sdk/export.js';
-  const sdkOutput = 'dist/sdk/owt.js';
+  const sdkOutput = 'dist/sdk/infraframe.js';
 
   var srcFiles = [
     'src/sdk/base/**',
@@ -44,7 +44,7 @@ window.L = L;\n\
         dest: sdkOutput,
         options: {
           browserifyOptions: {
-            standalone: 'Owt',
+            standalone: 'Infraframe',
             debug: false
           },
           transform: [
@@ -57,10 +57,10 @@ window.L = L;\n\
       },
       dev: {
         src: [sdkEntry],
-        dest: 'dist/sdk-debug/owt.js',
+        dest: 'dist/sdk-debug/infraframe.js',
         options: {
           browserifyOptions: {
-            standalone: 'Owt',
+            standalone: 'Infraframe',
             debug: true
           },
           transform: [
@@ -130,7 +130,7 @@ window.L = L;\n\
         src: restFiles,
         dest: 'dist/samples/conference/public/scripts/rest.js',
         options:{
-           footer:'module.exports = OWT_REST;',
+           footer:'module.exports = INFRAFRAME_REST;',
            process: true
         },
         nonull: true
@@ -144,7 +144,7 @@ window.L = L;\n\
     uglify: {
       dist: {
         files: {
-          'dist/sdk/owt.js': ['dist/sdk/owt.js']
+          'dist/sdk/infraframe.js': ['dist/sdk/infraframe.js']
         },
         options: {
           banner: '<%= meta.banner %>',
@@ -161,9 +161,9 @@ window.L = L;\n\
           {expand: true,cwd:'src/samples/conference/',src:['initcert.js'],dest:'dist/samples/conference/',flatten:false,mode:true},
           {expand: true,cwd:'src/samples/conference/cert/',src:['.woogeen.keystore'],dest:'dist/samples/conference/cert/',flatten:false,mode:true},
           {expand: true,cwd:'src/extension/',src:['**'],dest:'dist/',flatten:false},
-          {expand: true,cwd:'dist/sdk/',src:['owt.js'],dest:'dist/samples/conference/public/scripts/',flatten:false},
+          {expand: true,cwd:'dist/sdk/',src:['infraframe.js'],dest:'dist/samples/conference/public/scripts/',flatten:false},
           {expand: true,cwd:'dist/samples/conference/public/scripts',src:['rest.js'],dest:'dist/samples/conference/',flatten:false},
-          {expand: true,cwd:'dist/sdk/',src:['owt.js'],dest:'dist/samples/p2p/js/',flatten:false}
+          {expand: true,cwd:'dist/sdk/',src:['infraframe.js'],dest:'dist/samples/p2p/js/',flatten:false}
         ]
       }
     },
@@ -176,7 +176,7 @@ window.L = L;\n\
         replacements: [
           {
             pattern: /<!-- SDK Starts -->[\w\W]+<!-- SDK Stops -->/gm,
-            replacement: '<script src="js/owt.js" type="text/javascript"></script>'
+            replacement: '<script src="js/infraframe.js" type="text/javascript"></script>'
           },
           {
             pattern: /var serverAddress.*/g,
@@ -192,8 +192,8 @@ window.L = L;\n\
         options: {
         replacements: [
           {
-            pattern: '<script src="../../../../dist/sdk-debug/owt.js" type="text/javascript"></script>',
-            replacement: '<script src="scripts/owt.js" type="text/javascript"></script>'
+            pattern: '<script src="../../../../dist/sdk-debug/infraframe.js" type="text/javascript"></script>',
+            replacement: '<script src="scripts/infraframe.js" type="text/javascript"></script>'
           },
          ]
         }

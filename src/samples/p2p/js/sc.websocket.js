@@ -36,7 +36,7 @@ function SignalingChannel() {
       to: targetId,
     };
     return new Promise((resolve, reject) => {
-      wsServer.emit('owt-message', data, function(err) {
+      wsServer.emit('infraframe-message', data, function(err) {
         if (err) {
           reject(err);
         } else {
@@ -112,8 +112,8 @@ function SignalingChannel() {
       }
     });
 
-    wsServer.on('owt-message', function(data) {
-      console.info('Received owt message.');
+    wsServer.on('infraframe-message', function(data) {
+      console.info('Received infraframe message.');
       if (self.onMessage) {
         self.onMessage(data.from, data.data);
       }

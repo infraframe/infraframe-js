@@ -7,7 +7,7 @@
  * @class AudioSourceInfo
  * @classDesc Source info about an audio track. Values: 'mic', 'screen-cast',
  * 'file', 'mixed'.
- * @memberOf Owt.Base
+ * @memberOf Infraframe.Base
  * @readonly
  * @enum {string}
  */
@@ -22,7 +22,7 @@ export const AudioSourceInfo = {
  * @class VideoSourceInfo
  * @classDesc Source info about a video track. Values: 'camera', 'screen-cast',
  * 'file', 'mixed'.
- * @memberOf Owt.Base
+ * @memberOf Infraframe.Base
  * @readonly
  * @enum {string}
  */
@@ -37,7 +37,7 @@ export const VideoSourceInfo = {
  * @class TrackKind
  * @classDesc Kind of a track. Values: 'audio' for audio track, 'video' for
  * video track, 'av' for both audio and video tracks.
- * @memberOf Owt.Base
+ * @memberOf Infraframe.Base
  * @readonly
  * @enum {string}
  */
@@ -60,7 +60,7 @@ export const TrackKind = {
 };
 /**
  * @class Resolution
- * @memberOf Owt.Base
+ * @memberOf Infraframe.Base
  * @classDesc The Resolution defines the size of a rectangle.
  * @constructor
  * @param {number} width
@@ -72,13 +72,13 @@ export class Resolution {
     /**
      * @member {number} width
      * @instance
-     * @memberof Owt.Base.Resolution
+     * @memberof Infraframe.Base.Resolution
      */
     this.width = width;
     /**
      * @member {number} height
      * @instance
-     * @memberof Owt.Base.Resolution
+     * @memberof Infraframe.Base.Resolution
      */
     this.height = height;
   }

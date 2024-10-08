@@ -6,7 +6,7 @@
 
 'use strict';
 import * as Utils from './utils.js';
-import {EventDispatcher, OwtEvent} from './event.js';
+import {EventDispatcher, InfraframeEvent} from './event.js';
 
 // eslint-disable-next-line require-jsdoc
 function isAllowedValue(obj, allowedValues) {
@@ -16,7 +16,7 @@ function isAllowedValue(obj, allowedValues) {
 }
 /**
  * @class StreamSourceInfo
- * @memberOf Owt.Base
+ * @memberOf Infraframe.Base
  * @classDesc Information of a stream's source.
  * @constructor
  * @description Audio source info or video source info could be undefined if
@@ -46,9 +46,9 @@ export class StreamSourceInfo {
 }
 /**
  * @class Stream
- * @memberOf Owt.Base
+ * @memberOf Infraframe.Base
  * @classDesc Base class of streams.
- * @extends Owt.Base.EventDispatcher
+ * @extends Infraframe.Base.EventDispatcher
  * @hideconstructor
  */
 export class Stream extends EventDispatcher {
@@ -69,7 +69,7 @@ export class Stream extends EventDispatcher {
     /**
      * @member {?MediaStream} mediaStream
      * @instance
-     * @memberof Owt.Base.Stream
+     * @memberof Infraframe.Base.Stream
      * @see {@link https://www.w3.org/TR/mediacapture-streams/#mediastream|MediaStream API of Media Capture and Streams}.
      * @desc This property is deprecated, please use stream instead.
      */
@@ -83,7 +83,7 @@ export class Stream extends EventDispatcher {
     /**
      * @member {MediaStream | WebTransportBidirectionalStream | undefined} stream
      * @instance
-     * @memberof Owt.Base.Stream
+     * @memberof Infraframe.Base.Stream
      * @see {@link https://www.w3.org/TR/mediacapture-streams/#mediastream|MediaStream API of Media Capture and Streams}
      * @see {@link https://wicg.github.io/web-transport/ WebTransport}.
      */
@@ -93,9 +93,9 @@ export class Stream extends EventDispatcher {
       value: stream,
     });
     /**
-     * @member {Owt.Base.StreamSourceInfo} source
+     * @member {Infraframe.Base.StreamSourceInfo} source
      * @instance
-     * @memberof Owt.Base.Stream
+     * @memberof Infraframe.Base.Stream
      * @desc Source info of a stream.
      */
     Object.defineProperty(this, 'source', {
@@ -106,7 +106,7 @@ export class Stream extends EventDispatcher {
     /**
      * @member {object} attributes
      * @instance
-     * @memberof Owt.Base.Stream
+     * @memberof Infraframe.Base.Stream
      * @desc Custom attributes of a stream.
      */
     Object.defineProperty(this, 'attributes', {
@@ -119,11 +119,11 @@ export class Stream extends EventDispatcher {
 /**
  * @class LocalStream
  * @classDesc Stream captured from current endpoint.
- * @memberOf Owt.Base
- * @extends Owt.Base.Stream
+ * @memberOf Infraframe.Base
+ * @extends Infraframe.Base.Stream
  * @constructor
  * @param {MediaStream} stream Underlying MediaStream.
- * @param {Owt.Base.StreamSourceInfo} sourceInfo Information about stream's
+ * @param {Infraframe.Base.StreamSourceInfo} sourceInfo Information about stream's
  * source.
  * @param {object} attributes Custom attributes of the stream.
  */
@@ -137,7 +137,7 @@ export class LocalStream extends Stream {
     /**
      * @member {string} id
      * @instance
-     * @memberof Owt.Base.LocalStream
+     * @memberof Infraframe.Base.LocalStream
      */
     Object.defineProperty(this, 'id', {
       configurable: false,
@@ -158,8 +158,8 @@ export class LocalStream extends Stream {
  * | ended           | Event            | Stream is no longer available on server side.   |
  * | updated         | Event            | Stream is updated. |
  *
- * @memberOf Owt.Base
- * @extends Owt.Base.Stream
+ * @memberOf Infraframe.Base
+ * @extends Infraframe.Base.Stream
  * @hideconstructor
  */
 export class RemoteStream extends Stream {
@@ -169,7 +169,7 @@ export class RemoteStream extends Stream {
     /**
      * @member {string} id
      * @instance
-     * @memberof Owt.Base.RemoteStream
+     * @memberof Infraframe.Base.RemoteStream
      */
     Object.defineProperty(this, 'id', {
       configurable: false,
@@ -179,7 +179,7 @@ export class RemoteStream extends Stream {
     /**
      * @member {string} origin
      * @instance
-     * @memberof Owt.Base.RemoteStream
+     * @memberof Infraframe.Base.RemoteStream
      * @desc ID of the remote endpoint who published this stream.
      */
     Object.defineProperty(this, 'origin', {
@@ -188,17 +188,17 @@ export class RemoteStream extends Stream {
       value: origin,
     });
     /**
-     * @member {Owt.Base.PublicationSettings} settings
+     * @member {Infraframe.Base.PublicationSettings} settings
      * @instance
-     * @memberof Owt.Base.RemoteStream
+     * @memberof Infraframe.Base.RemoteStream
      * @desc Original settings for publishing this stream. This property is only
      * valid in conference mode.
      */
     this.settings = undefined;
     /**
-     * @member {Owt.Conference.SubscriptionCapabilities} extraCapabilities
+     * @member {Infraframe.Conference.SubscriptionCapabilities} extraCapabilities
      * @instance
-     * @memberof Owt.Base.RemoteStream
+     * @memberof Infraframe.Base.RemoteStream
      * @desc Extra capabilities remote endpoint provides for subscription. Extra
      * capabilities don't include original settings. This property is only valid
      * in conference mode.
@@ -210,18 +210,18 @@ export class RemoteStream extends Stream {
 /**
  * @class StreamEvent
  * @classDesc Event for Stream.
- * @extends Owt.Base.OwtEvent
- * @memberof Owt.Base
+ * @extends Infraframe.Base.InfraframeEvent
+ * @memberof Infraframe.Base
  * @hideconstructor
  */
-export class StreamEvent extends OwtEvent {
+export class StreamEvent extends InfraframeEvent {
   // eslint-disable-next-line require-jsdoc
   constructor(type, init) {
     super(type);
     /**
-     * @member {Owt.Base.Stream} stream
+     * @member {Infraframe.Base.Stream} stream
      * @instance
-     * @memberof Owt.Base.StreamEvent
+     * @memberof Infraframe.Base.StreamEvent
      */
     this.stream = init.stream;
   }

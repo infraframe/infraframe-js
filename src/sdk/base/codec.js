@@ -6,7 +6,7 @@
 
 /**
  * @class AudioCodec
- * @memberOf Owt.Base
+ * @memberOf Infraframe.Base
  * @classDesc Audio codec enumeration.
  * @hideconstructor
  */
@@ -23,7 +23,7 @@ export const AudioCodec = {
 };
 /**
  * @class AudioCodecParameters
- * @memberOf Owt.Base
+ * @memberOf Infraframe.Base
  * @classDesc Codec parameters for an audio track.
  * @hideconstructor
  */
@@ -32,22 +32,22 @@ export class AudioCodecParameters {
   constructor(name, channelCount, clockRate) {
     /**
      * @member {string} name
-     * @memberof Owt.Base.AudioCodecParameters
+     * @memberof Infraframe.Base.AudioCodecParameters
      * @instance
-     * @desc Name of a codec. Please a value in Owt.Base.AudioCodec. However,
-     * some functions do not support all the values in Owt.Base.AudioCodec.
+     * @desc Name of a codec. Please a value in Infraframe.Base.AudioCodec. However,
+     * some functions do not support all the values in Infraframe.Base.AudioCodec.
      */
     this.name = name;
     /**
      * @member {?number} channelCount
-     * @memberof Owt.Base.AudioCodecParameters
+     * @memberof Infraframe.Base.AudioCodecParameters
      * @instance
      * @desc Numbers of channels for an audio track.
      */
     this.channelCount = channelCount;
     /**
      * @member {?number} clockRate
-     * @memberof Owt.Base.AudioCodecParameters
+     * @memberof Infraframe.Base.AudioCodecParameters
      * @instance
      * @desc The codec clock rate expressed in Hertz.
      */
@@ -57,7 +57,7 @@ export class AudioCodecParameters {
 
 /**
  * @class AudioEncodingParameters
- * @memberOf Owt.Base
+ * @memberOf Infraframe.Base
  * @classDesc Encoding parameters for sending an audio track.
  * @hideconstructor
  */
@@ -65,15 +65,15 @@ export class AudioEncodingParameters {
   // eslint-disable-next-line require-jsdoc
   constructor(codec, maxBitrate) {
     /**
-     * @member {?Owt.Base.AudioCodecParameters} codec
+     * @member {?Infraframe.Base.AudioCodecParameters} codec
      * @instance
-     * @memberof Owt.Base.AudioEncodingParameters
+     * @memberof Infraframe.Base.AudioEncodingParameters
      */
     this.codec = codec;
     /**
      * @member {?number} maxBitrate
      * @instance
-     * @memberof Owt.Base.AudioEncodingParameters
+     * @memberof Infraframe.Base.AudioEncodingParameters
      * @desc Max bitrate expressed in kbps.
      */
     this.maxBitrate = maxBitrate;
@@ -82,7 +82,7 @@ export class AudioEncodingParameters {
 
 /**
  * @class VideoCodec
- * @memberOf Owt.Base
+ * @memberOf Infraframe.Base
  * @classDesc Video codec enumeration.
  * @hideconstructor
  */
@@ -99,7 +99,7 @@ export const VideoCodec = {
 
 /**
  * @class VideoCodecParameters
- * @memberOf Owt.Base
+ * @memberOf Infraframe.Base
  * @classDesc Codec parameters for a video track.
  * @hideconstructor
  */
@@ -108,15 +108,15 @@ export class VideoCodecParameters {
   constructor(name, profile) {
     /**
      * @member {string} name
-     * @memberof Owt.Base.VideoCodecParameters
+     * @memberof Infraframe.Base.VideoCodecParameters
      * @instance
-     * @desc Name of a codec.Please a value in Owt.Base.AudioCodec.However,
-       some functions do not support all the values in Owt.Base.AudioCodec.
+     * @desc Name of a codec.Please a value in Infraframe.Base.AudioCodec.However,
+       some functions do not support all the values in Infraframe.Base.AudioCodec.
      */
     this.name = name;
     /**
      * @member {?string} profile
-     * @memberof Owt.Base.VideoCodecParameters
+     * @memberof Infraframe.Base.VideoCodecParameters
      * @instance
      * @desc The profile of a codec. Profile may not apply to all codecs.
      */
@@ -126,7 +126,7 @@ export class VideoCodecParameters {
 
 /**
  * @class VideoEncodingParameters
- * @memberOf Owt.Base
+ * @memberOf Infraframe.Base
  * @classDesc Encoding parameters for sending a video track.
  * @hideconstructor
  */
@@ -134,15 +134,15 @@ export class VideoEncodingParameters {
   // eslint-disable-next-line require-jsdoc
   constructor(codec, maxBitrate) {
     /**
-     * @member {?Owt.Base.VideoCodecParameters} codec
+     * @member {?Infraframe.Base.VideoCodecParameters} codec
      * @instance
-     * @memberof Owt.Base.VideoEncodingParameters
+     * @memberof Infraframe.Base.VideoEncodingParameters
      */
     this.codec = codec;
     /**
      * @member {?number} maxBitrate
      * @instance
-     * @memberof Owt.Base.VideoEncodingParameters
+     * @memberof Infraframe.Base.VideoEncodingParameters
      * @desc Max bitrate expressed in kbps.
      */
     this.maxBitrate = maxBitrate;

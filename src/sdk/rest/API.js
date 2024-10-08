@@ -21,7 +21,6 @@
 // SOFTWARE.
 
 // Copyright (C) <2018> Intel Corporation
-// Copyright (C) <2024> InfraFrame team
 //
 // SPDX-License-Identifier: Apache-2.0
 
@@ -29,25 +28,23 @@
 
 'use strict';
 
-import CryptoJS from 'crypto';
-import { Buffer } from 'buffer';
-import * as http from 'http';
-import * as https from 'https';
+/* global require, CryptoJS, Buffer, url, http, https*/
+const Url = require('url');
 
-import { Base64 } from '../base/base64';
+var INFRAFRAME_REST = INFRAFRAME_REST || {};
 
-/**@namespace OWT_REST
- * @classDesc Namespace for OWT(Intel Collaboration Suite) REST API definition.
+/** @namespace INFRAFRAME_REST
+ * @classDesc Namespace for INFRAFRAME(Intel Collaboration Suite) REST API definition.
  */
 /**
- * @class OWT_REST.API
- * @classDesc Server-side APIs should be called by RTC service integrators, as demostrated in sampleRTCService.js. Server-side APIs are RESTful, provided as a Node.js module. All APIs, except OWT_REST.API.init(), should not be called too frequently. These API calls carry local timestamps and are grouped by serviceID. Once the server is handling an API call from a certain serviceID, all other API calls from the same serviceID, whose timestamps are behind, would be expired or treated as invalid.<br>
+ * @class INFRAFRAME_REST.API
+ * @classDesc Server-side APIs should be called by RTC service integrators, as demostrated in sampleRTCService.js. Server-side APIs are RESTful, provided as a Node.js module. All APIs, except INFRAFRAME_REST.API.init(), should not be called too frequently. These API calls carry local timestamps and are grouped by serviceID. Once the server is handling an API call from a certain serviceID, all other API calls from the same serviceID, whose timestamps are behind, would be expired or treated as invalid.<br>
 We recommend that API calls against serviceID should have interval of at least 100ms. Also, it is better to retry the logic if it fails with an unexpected timestamp error.
  */
-const REST = function () {
+INFRAFRAME_REST.API = (function(INFRAFRAME_REST) {
   'use strict';
-  var version = 'v1';
-  var params = {
+  const version = 'v1';
+  const params = {
     service: undefined,
     key: undefined,
     url: undefined,
@@ -55,20 +52,20 @@ const REST = function () {
   };
 
   function calculateSignature(toSign, key) {
-    var hash, hex, signed;
+    let hash; let hex; let signed;
     hash = CryptoJS.HmacSHA256(toSign, key);
     hex = hash.toString(CryptoJS.enc.Hex);
-    signed = Base64.encodeBase64(hex);
+    signed = INFRAFRAME_REST.Base64.encodeBase64(hex);
     return signed;
   }
 
   function send(method, resource, body, onOK, onError) {
-    var url = URL(params.url + resource);
-    var ssl = url.protocol === 'https:' ? true : false;
-    var timestamp = new Date().getTime();
-    var cnounce = CryptoJS.randomBytes(8).toString('hex');
-    var toSign = timestamp + ',' + cnounce;
-    var header =
+    const url = Url.parse(params.url + resource);
+    const ssl = url.protocol === 'https:' ? true : false;
+    const timestamp = new Date().getTime();
+    const cnounce = require('crypto').randomBytes(8).toString('hex');
+    const toSign = timestamp + ',' + cnounce;
+    let header =
       'MAuth realm=http://marte3.dit.upm.es,mauth_signature_method=HMAC_SHA256';
 
     header += ',mauth_serviceid=';
@@ -80,7 +77,7 @@ const REST = function () {
     header += ',mauth_signature=';
     header += calculateSignature(toSign, params.key);
 
-    var options = {
+    const options = {
       hostname: url.hostname,
       port: url.port || (ssl ? 443 : 80),
       path: url.pathname + (url.search ? url.search : ''),
@@ -94,7 +91,7 @@ const REST = function () {
       params.rejectUnauthorizedCert !== undefined &&
       (options.rejectUnauthorized = params.rejectUnauthorizedCert);
 
-    var bodyJSON;
+    let bodyJSON;
     if (body) {
       bodyJSON = JSON.stringify(body);
       options.headers['Content-Type'] = 'application/json';
@@ -103,11 +100,11 @@ const REST = function () {
       options.headers['Content-Type'] = 'text/plain;charset=UTF-8';
     }
 
-    var doRequest = ssl ? https.request : http.request;
+    const doRequest = ssl ? require('https').request : require('http').request;
     var req = doRequest(options, (res) => {
       res.setEncoding('utf8');
-      var resTxt = '';
-      var status = res.statusCode;
+      let resTxt = '';
+      const status = res.statusCode;
 
       res.on('data', (chunk) => {
         resTxt += chunk;
@@ -139,16 +136,16 @@ const REST = function () {
      * @function init
      * @desc This function completes the essential configuration.
   <br><b>Remarks:</b><br>
-  Make sure you use the correct OWT_REST server url, according to the OWT_REST ssl configuration.
-     * @memberOf OWT_REST.API
+  Make sure you use the correct INFRAFRAME_REST server url, according to the INFRAFRAME_REST ssl configuration.
+     * @memberOf INFRAFRAME_REST.API
      * @param {string} service                       -The ID of your service.
      * @param {string} key                           -The key of your service.
-     * @param {string} url                           -The URL of OWT service.
+     * @param {string} url                           -The URL of INFRAFRAME service.
      * @param {boolean} rejectUnauthorizedCert       -Flag to determine whether reject unauthorized certificates, with value being true or false, true by default.
      * @example
-  OWT_REST.API.init('5188b9af6e53c84ffd600413', '21989', 'http://61.129.90.140:3000/', true)
+  INFRAFRAME_REST.API.init('5188b9af6e53c84ffd600413', '21989', 'http://61.129.90.140:3000/', true)
      */
-  var init = function (service, key, url, rejectUnauthorizedCert) {
+  const init = function(service, key, url, rejectUnauthorizedCert) {
     if (typeof service !== 'string' || service === '') {
       throw new TypeError('Invalid service ID');
     }
@@ -175,8 +172,8 @@ const REST = function () {
 
   // Convert a viewports object to views which is defined in MCU.
   function viewportsToViews(viewports) {
-    var view = {};
-    viewports.forEach(function (viewport) {
+    const view = {};
+    viewports.forEach(function(viewport) {
       view[viewport.name] = {
         mediaMixing: viewport.mediaMixing,
       };
@@ -287,13 +284,13 @@ const REST = function () {
       </tbody>
   </table>
   @endhtmlonly
-     * @memberOf OWT_REST.API
+     * @memberOf INFRAFRAME_REST.API
      * @param {string} name                          -Room name.
      * @param {json} options                         -Room configuration.
      * @param {function} callback                    -Callback function on success.
      * @param {function} callbackError               -Callback function on error.
      * @example
-  OWT_REST.API.createRoom('myRoom', {
+  INFRAFRAME_REST.API.createRoom('myRoom', {
     mode: 'hybrid',
     publishLimit: -1,
     userLimit: 30,
@@ -339,7 +336,7 @@ const REST = function () {
     console.log ('Error:', err);
   });
      */
-  var createRoom = function (name, options, callback, callbackError) {
+  const createRoom = function(name, options, callback, callbackError) {
     if (!options) {
       options = {};
     }
@@ -350,28 +347,28 @@ const REST = function () {
     }
 
     send(
-      'POST',
-      'rooms',
-      {
-        name: name,
-        options: options,
-      },
-      function (roomRtn) {
-        var room = JSON.parse(roomRtn);
-        callback(room);
-      },
-      callbackError
+        'POST',
+        'rooms',
+        {
+          name: name,
+          options: options,
+        },
+        function(roomRtn) {
+          const room = JSON.parse(roomRtn);
+          callback(room);
+        },
+        callbackError,
     );
   };
 
   /**
      * @function getRooms
      * @desc This function lists the rooms in your service.
-     * @memberOf OWT_REST.API
+     * @memberOf INFRAFRAME_REST.API
      * @param {function} callback                    -Callback function on success
      * @param {function} callbackError               -Callback function on error
      * @example
-  OWT_REST.API.getRooms(function(rooms) {
+  INFRAFRAME_REST.API.getRooms(function(rooms) {
     for(var i in rooms) {
       console.log('Room', i, ':', rooms[i].name);
     }
@@ -380,40 +377,40 @@ const REST = function () {
     console.log(status, error);
   });
      */
-  var getRooms = function (option, callback, callbackError) {
+  const getRooms = function(option, callback, callbackError) {
     option = option || {};
-    var page = option.page || 1;
-    var per_page = option.per_page || 50;
-    var query = '?page=' + page + '&per_page=' + per_page;
+    const page = option.page || 1;
+    const per_page = option.per_page || 50;
+    const query = '?page=' + page + '&per_page=' + per_page;
     send(
-      'GET',
-      'rooms' + query,
-      undefined,
-      function (roomsRtn) {
-        var rooms = JSON.parse(roomsRtn);
-        callback(rooms);
-      },
-      callbackError
+        'GET',
+        'rooms' + query,
+        undefined,
+        function(roomsRtn) {
+          const rooms = JSON.parse(roomsRtn);
+          callback(rooms);
+        },
+        callbackError,
     );
   };
 
   /**
      * @function getRoom
      * @desc This function returns information on the specified room.
-     * @memberOf OWT_REST.API
+     * @memberOf INFRAFRAME_REST.API
      * @param {string} room                          -Room ID
      * @param {function} callback                    -Callback function on success
      * @param {function} callbackError               -Callback function on error
      * @example
   var roomId = '51c10d86909ad1f939000001';
-  OWT_REST.API.getRoom(roomId, function(room) {
+  INFRAFRAME_REST.API.getRoom(roomId, function(room) {
     console.log('Room name:', room.name);
   }, function(status, error) {
     // HTTP status and error
     console.log(status, error);
   });
      */
-  var getRoom = function (room, callback, callbackError) {
+  const getRoom = function(room, callback, callbackError) {
     if (typeof room !== 'string') {
       callbackError(401, 'Invalid room ID.');
       return;
@@ -423,55 +420,55 @@ const REST = function () {
       return;
     }
     send(
-      'GET',
-      'rooms/' + room,
-      undefined,
-      function (roomRtn) {
-        var room = JSON.parse(roomRtn);
-        callback(room);
-      },
-      callbackError
+        'GET',
+        'rooms/' + room,
+        undefined,
+        function(roomRtn) {
+          const room = JSON.parse(roomRtn);
+          callback(room);
+        },
+        callbackError,
     );
   };
 
   /**
      * @function deleteRoom
      * @desc This function deletes the specified room.
-     * @memberOf OWT_REST.API
+     * @memberOf INFRAFRAME_REST.API
      * @param {string} room                          -Room ID to be deleted
      * @param {function} callback                    -Callback function on success
      * @param {function} callbackError               -Callback function on error
      * @example
   var room = '51c10d86909ad1f939000001';
-  OWT_REST.API.deleteRoom(room, function(result) {
+  INFRAFRAME_REST.API.deleteRoom(room, function(result) {
     console.log ('Result:' result);
   }, function(status, error) {
     // HTTP status and error
     console.log(status, error);
   });
      */
-  var deleteRoom = function (room, callback, callbackError) {
+  const deleteRoom = function(room, callback, callbackError) {
     send(
-      'DELETE',
-      'rooms/' + room,
-      undefined,
-      function (room) {
-        callback(room);
-      },
-      callbackError
+        'DELETE',
+        'rooms/' + room,
+        undefined,
+        function(room) {
+          callback(room);
+        },
+        callbackError,
     );
   };
 
   /**
      * @function updateRoom
      * @desc This function updates a room's configuration entirely.
-     * @memberOf OWT_REST.API
+     * @memberOf INFRAFRAME_REST.API
      * @param {string} room                          -Room ID.
-     * @param {json} options                         -Room configuration. See details about options in {@link OWT_REST.API#createRoom createRoom(name, options, callback, callbackError)}.
+     * @param {json} options                         -Room configuration. See details about options in {@link INFRAFRAME_REST.API#createRoom createRoom(name, options, callback, callbackError)}.
      * @param {function} callback                    -Callback function on success
      * @param {function} callbackError               -Callback function on error
      * @example
-  OWT_REST.API.updateRoom(XXXXXXXXXX, {
+  INFRAFRAME_REST.API.updateRoom(XXXXXXXXXX, {
     publishLimit: -1,
     userLimit: -1,
     enableMixing: 1,
@@ -518,33 +515,33 @@ const REST = function () {
   });
      */
 
-  var updateRoom = function (room, options, callback, callbackError) {
+  const updateRoom = function(room, options, callback, callbackError) {
     if (options && options.viewports) {
       options.views = viewportsToViews(options.viewports);
       delete options.viewports;
     }
     send(
-      'PUT',
-      'rooms/' + room,
-      options || {},
-      function (roomRtn) {
-        var room = JSON.parse(roomRtn);
-        callback(room);
-      },
-      callbackError
+        'PUT',
+        'rooms/' + room,
+        options || {},
+        function(roomRtn) {
+          const room = JSON.parse(roomRtn);
+          callback(room);
+        },
+        callbackError,
     );
   };
 
   /**
      * @function updateRoomPartially
      * @desc This function updates a room's configuration partially.
-     * @memberOf OWT_REST.API
+     * @memberOf INFRAFRAME_REST.API
      * @param {string} room                          -Room ID.
      * @param {Array.<{op: string, path: string, value: json}>} items  -Configuration item list to be updated, with format following RFC6902(https://tools.ietf.org/html/rfc6902).
      * @param {function} callback                    -Callback function on success
      * @param {function} callbackError               -Callback function on error
      * @example
-  OWT_REST.API.updateRoomPartially(XXXXXXXXXX, [
+  INFRAFRAME_REST.API.updateRoomPartially(XXXXXXXXXX, [
     {op: 'replace', path: '/enableMixing', value: 0},
     {op: 'replace', path: '/viewports/0/mediaMixing/video/avCoordinated', value: 1}
   ], function (res) {
@@ -553,16 +550,16 @@ const REST = function () {
     console.log ('Error:', err);
   });
      */
-  var updateRoomPartially = function (room, items, callback, callbackError) {
+  const updateRoomPartially = function(room, items, callback, callbackError) {
     send(
-      'PATCH',
-      'rooms/' + room,
-      items || [],
-      function (roomRtn) {
-        var new_room = JSON.parse(roomRtn);
-        callback(new_room);
-      },
-      callbackError
+        'PATCH',
+        'rooms/' + room,
+        items || [],
+        function(roomRtn) {
+          const new_room = JSON.parse(roomRtn);
+          callback(new_room);
+        },
+        callbackError,
     );
   };
 
@@ -573,13 +570,13 @@ const REST = function () {
   /**
      * @function getParticipants
      * @desc This function lists participants currently in the specified room.
-     * @memberOf OWT_REST.API
+     * @memberOf INFRAFRAME_REST.API
      * @param {string} room                          -Room ID
      * @param {onParticipantList} callback           -Callback function on success
      * @param {function} callbackError               -Callback function on error
      * @example
   var roomId = '51c10d86909ad1f939000001';
-  OWT_REST.API.getParticipants(roomId, function(participants) {
+  INFRAFRAME_REST.API.getParticipants(roomId, function(participants) {
     var l = JSON.parse(participants);
     console.log ('This room has ', l.length, 'participants');
     for (var i in l) {
@@ -590,16 +587,16 @@ const REST = function () {
     console.log(status, error);
   });
      */
-  var getParticipants = function (room, callback, callbackError) {
+  const getParticipants = function(room, callback, callbackError) {
     send(
-      'GET',
-      'rooms/' + room + '/participants/',
-      undefined,
-      function (participantsRtn) {
-        var participants = JSON.parse(participantsRtn);
-        callback(participants);
-      },
-      callbackError
+        'GET',
+        'rooms/' + room + '/participants/',
+        undefined,
+        function(participantsRtn) {
+          const participants = JSON.parse(participantsRtn);
+          callback(participants);
+        },
+        callbackError,
     );
   };
 
@@ -614,7 +611,7 @@ const REST = function () {
   /**
      * @function getParticipant
      * @desc This function gets a participant's information from the specified room.
-     * @memberOf OWT_REST.API
+     * @memberOf INFRAFRAME_REST.API
      * @param {string} room                          -Room ID
      * @param {string} participant                   -Participant ID
      * @param {onParticipantDetail} callback         -Callback function on success
@@ -622,26 +619,26 @@ const REST = function () {
      * @example
   var roomId = '51c10d86909ad1f939000001';
   var participantID = 'JdlUI29yjfVY6O4yAAAB';
-  OWT_REST.API.getParticipant(roomId, participantID, function(participant) {
+  INFRAFRAME_REST.API.getParticipant(roomId, participantID, function(participant) {
     console.log('Participant:', participant);
   }, function(status, error) {
     // HTTP status and error
     console.log(status, error);
   });
      */
-  var getParticipant = function (room, participant, callback, callbackError) {
+  const getParticipant = function(room, participant, callback, callbackError) {
     if (typeof participant !== 'string' || participant.trim().length === 0) {
       return callbackError('Invalid participant ID');
     }
     send(
-      'GET',
-      'rooms/' + room + '/participants/' + participant,
-      undefined,
-      function (participantRtn) {
-        var p = JSON.parse(participantRtn);
-        callback(p);
-      },
-      callbackError
+        'GET',
+        'rooms/' + room + '/participants/' + participant,
+        undefined,
+        function(participantRtn) {
+          const p = JSON.parse(participantRtn);
+          callback(p);
+        },
+        callbackError,
     );
   };
 
@@ -652,7 +649,7 @@ const REST = function () {
   /**
      * @function updateParticipant
      * @desc This function updates the permission of a participant in the specified room.
-     * @memberOf OWT_REST.API
+     * @memberOf INFRAFRAME_REST.API
      * @param {string} room                          -Room ID
      * @param {string} participant                   -Participant ID
      * @param {Array.<{op: string, path: string, value: json}>} items   -Permission item list to be updated, with format following RFC6902(https://tools.ietf.org/html/rfc6902).
@@ -661,19 +658,19 @@ const REST = function () {
      * @example
   var roomId = '51c10d86909ad1f939000001';
   var participantID = 'JdlUI29yjfVY6O4yAAAB';
-  OWT_REST.API.getParticipant(roomId, participantID, function(participant) {
+  INFRAFRAME_REST.API.getParticipant(roomId, participantID, function(participant) {
     console.log('Participant:', participant);
   }, function(status, error) {
     // HTTP status and error
     console.log(status, error);
   });
      */
-  var updateParticipant = function (
-    room,
-    participant,
-    items,
-    callback,
-    callbackError
+  const updateParticipant = function(
+      room,
+      participant,
+      items,
+      callback,
+      callbackError,
   ) {
     if (typeof participant !== 'string' || participant.trim().length === 0) {
       return callbackError('Invalid participant ID');
@@ -682,21 +679,21 @@ const REST = function () {
       return callbackError('Invalid update list');
     }
     send(
-      'PATCH',
-      'rooms/' + room + '/participants/' + participant,
-      items,
-      function (participantRtn) {
-        var p = JSON.parse(participantRtn);
-        callback(p);
-      },
-      callbackError
+        'PATCH',
+        'rooms/' + room + '/participants/' + participant,
+        items,
+        function(participantRtn) {
+          const p = JSON.parse(participantRtn);
+          callback(p);
+        },
+        callbackError,
     );
   };
 
   /**
      * @function dropParticipant
      * @desc This function drops a participant from a room.
-     * @memberOf OWT_REST.API
+     * @memberOf INFRAFRAME_REST.API
      * @param {string} room                          -Room ID
      * @param {string} participant                   -Participant ID
      * @param {function} callback                    -Callback function on success
@@ -704,25 +701,25 @@ const REST = function () {
      * @example
   var roomId = '51c10d86909ad1f939000001';
   var participantID = 'JdlUI29yjfVY6O4yAAAB';
-  OWT_REST.API.dropParticipant(roomId, participantID, function(res) {
+  INFRAFRAME_REST.API.dropParticipant(roomId, participantID, function(res) {
     console.log('Participant', participantID, 'in room', roomId, 'deleted');
   }, function(status, error) {
     // HTTP status and error
     console.log(status, error);
   });
      */
-  var dropParticipant = function (room, participant, callback, callbackError) {
+  const dropParticipant = function(room, participant, callback, callbackError) {
     if (typeof participant !== 'string' || participant.trim().length === 0) {
       return callbackError('Invalid participant ID');
     }
     send(
-      'DELETE',
-      'rooms/' + room + '/participants/' + participant,
-      undefined,
-      function (participant) {
-        callback(participant);
-      },
-      callbackError
+        'DELETE',
+        'rooms/' + room + '/participants/' + participant,
+        undefined,
+        function(participant) {
+          callback(participant);
+        },
+        callbackError,
     );
   };
 
@@ -734,13 +731,13 @@ const REST = function () {
   /**
      * @function getStreams
      * @desc This function lists streams currently in the specified room.
-     * @memberOf OWT_REST.API
+     * @memberOf INFRAFRAME_REST.API
      * @param {string} room                          -Room ID
      * @param {onStreamList} callback                -Callback function on success
      * @param {function} callbackError               -Callback function on error
      * @example
   var roomId = '51c10d86909ad1f939000001';
-  OWT_REST.API.getStreams(roomId, function(streams) {
+  INFRAFRAME_REST.API.getStreams(roomId, function(streams) {
     var l = JSON.parse(streams);
     console.log ('This room has ', l.length, 'streams');
     for (var i in l) {
@@ -751,16 +748,16 @@ const REST = function () {
     console.log(status, error);
   });
      */
-  var getStreams = function (room, callback, callbackError) {
+  const getStreams = function(room, callback, callbackError) {
     send(
-      'GET',
-      'rooms/' + room + '/streams/',
-      undefined,
-      function (streamsRtn) {
-        var streams = JSON.parse(streamsRtn);
-        callback(streams);
-      },
-      callbackError
+        'GET',
+        'rooms/' + room + '/streams/',
+        undefined,
+        function(streamsRtn) {
+          const streams = JSON.parse(streamsRtn);
+          callback(streams);
+        },
+        callbackError,
     );
   };
 
@@ -771,7 +768,7 @@ const REST = function () {
   /**
      * @function getStream
      * @desc This function gets a stream's information from the specified room.
-     * @memberOf OWT_REST.API
+     * @memberOf INFRAFRAME_REST.API
      * @param {string} room                          -Room ID
      * @param {string} stream                        -Stream ID
      * @param {onStreamInfo} callback                -Callback function on success
@@ -779,26 +776,26 @@ const REST = function () {
      * @example
   var roomId = '51c10d86909ad1f939000001';
   var streamID = '878889273471677';
-  OWT_REST.API.getStream(roomId, streamID, function(stream) {
+  INFRAFRAME_REST.API.getStream(roomId, streamID, function(stream) {
     console.log('Stream:', stream);
   }, function(status, error) {
     // HTTP status and error
     console.log(status, error);
   });
      */
-  var getStream = function (room, stream, callback, callbackError) {
+  const getStream = function(room, stream, callback, callbackError) {
     if (typeof stream !== 'string' || stream.trim().length === 0) {
       return callbackError('Invalid stream ID');
     }
     send(
-      'GET',
-      'rooms/' + room + '/streams/' + stream,
-      undefined,
-      function (streamRtn) {
-        var st = JSON.parse(streamRtn);
-        callback(st);
-      },
-      callbackError
+        'GET',
+        'rooms/' + room + '/streams/' + stream,
+        undefined,
+        function(streamRtn) {
+          const st = JSON.parse(streamRtn);
+          callback(st);
+        },
+        callbackError,
     );
   };
 
@@ -809,7 +806,7 @@ const REST = function () {
   /**
      * @function updateStream
      * @desc This function updates a stream's given attributes in the specified room.
-     * @memberOf OWT_REST.API
+     * @memberOf INFRAFRAME_REST.API
      * @param {string} room                          -Room ID
      * @param {string} stream                        -Stream ID
      * @param {Array.<{op: string, path: string, value: json}>} items   -Attributes to be updated, with format following RFC6902(https://tools.ietf.org/html/rfc6902).
@@ -818,14 +815,14 @@ const REST = function () {
      * @example
   var roomId = '51c10d86909ad1f939000001';
   var streamID = '878889273471677';
-  OWT_REST.API.updateStream(roomId, streamID, [{op: 'replace', path: '/media/audio/status', value: 'inactive'}], function(stream) {
+  INFRAFRAME_REST.API.updateStream(roomId, streamID, [{op: 'replace', path: '/media/audio/status', value: 'inactive'}], function(stream) {
     console.log('Stream:', stream);
   }, function(status, error) {
     // HTTP status and error
     console.log(status, error);
   });
      */
-  var updateStream = function (room, stream, items, callback, callbackError) {
+  const updateStream = function(room, stream, items, callback, callbackError) {
     if (typeof stream !== 'string' || stream.trim().length === 0) {
       return callbackError('Invalid stream ID');
     }
@@ -833,21 +830,21 @@ const REST = function () {
       return callbackError('Invalid update list');
     }
     send(
-      'PATCH',
-      'rooms/' + room + '/streams/' + stream,
-      items,
-      function (streamRtn) {
-        var st = JSON.parse(streamRtn);
-        callback(st);
-      },
-      callbackError
+        'PATCH',
+        'rooms/' + room + '/streams/' + stream,
+        items,
+        function(streamRtn) {
+          const st = JSON.parse(streamRtn);
+          callback(st);
+        },
+        callbackError,
     );
   };
 
   /**
      * @function deleteStream
      * @desc This function deletes the specified stream from the specified room.
-     * @memberOf OWT_REST.API
+     * @memberOf INFRAFRAME_REST.API
      * @param {string} room                          -Room ID
      * @param {string} stream                        -Stream ID
      * @param {function} callback                    -Callback function on success
@@ -855,25 +852,25 @@ const REST = function () {
      * @example
   var roomId = '51c10d86909ad1f939000001';
   var streamID = '878889273471677';
-  OWT_REST.API.deleteStream(roomId, streamID, function(result) {
+  INFRAFRAME_REST.API.deleteStream(roomId, streamID, function(result) {
     console.log('Stream:', streamID, 'in room:', roomId, 'deleted');
   }, function(status, error) {
     // HTTP status and error
     console.log(status, error);
   });
      */
-  var deleteStream = function (room, stream, callback, callbackError) {
+  const deleteStream = function(room, stream, callback, callbackError) {
     if (typeof stream !== 'string' || stream.trim().length === 0) {
       return callbackError('Invalid stream ID');
     }
     send(
-      'DELETE',
-      'rooms/' + room + '/streams/' + stream,
-      undefined,
-      function (result) {
-        callback(result);
-      },
-      callbackError
+        'DELETE',
+        'rooms/' + room + '/streams/' + stream,
+        undefined,
+        function(result) {
+          callback(result);
+        },
+        callbackError,
     );
   };
 
@@ -885,7 +882,7 @@ const REST = function () {
    ***
      * @function startStreamingIn
      * @desc This function adds an external RTSP/RTMP stream to the specified room.
-     * @memberOf OWT_REST.API
+     * @memberOf INFRAFRAME_REST.API
      * @param {string} room                          -Room ID
      * @param {string} url                           -URL of the streaming source, e.g. the source URL of IPCamera.
      * @param {Object} transport                     -Transport parameters.
@@ -908,22 +905,22 @@ const REST = function () {
     video: true
   };
 
-  OWT_REST.API.startStreamingIn(roomId, url, transport, media, function(stream) {
+  INFRAFRAME_REST.API.startStreamingIn(roomId, url, transport, media, function(stream) {
     console.log('Streaming-In:', stream);
   }, function(status, error) {
     // HTTP status and error
     console.log(status, error);
   });
      */
-  var startStreamingIn = function (
-    room,
-    url,
-    transport,
-    media,
-    callback,
-    callbackError
+  const startStreamingIn = function(
+      room,
+      url,
+      transport,
+      media,
+      callback,
+      callbackError,
   ) {
-    var pub_req = {
+    const pub_req = {
       connection: {
         url: url,
         transportProtocol: transport.protocol,
@@ -932,21 +929,21 @@ const REST = function () {
       media: media,
     };
     send(
-      'POST',
-      'rooms/' + room + '/streaming-ins/',
-      pub_req,
-      function (streamRtn) {
-        var st = JSON.parse(streamRtn);
-        callback(st);
-      },
-      callbackError
+        'POST',
+        'rooms/' + room + '/streaming-ins/',
+        pub_req,
+        function(streamRtn) {
+          const st = JSON.parse(streamRtn);
+          callback(st);
+        },
+        callbackError,
     );
   };
 
   /**
      * @function stopStreamingIn
      * @desc This function stops the specified external streaming-in in the specified room.
-     * @memberOf OWT_REST.API
+     * @memberOf INFRAFRAME_REST.API
      * @param {string} room                          -Room ID
      * @param {string} stream                        -Stream ID
      * @param {function} callback                    -Callback function on success
@@ -954,25 +951,25 @@ const REST = function () {
      * @example
   var roomId = '51c10d86909ad1f939000001';
   var streamID = '878889273471677';
-  OWT_REST.API.stopStreamingIn(roomId, streamID, function(result) {
+  INFRAFRAME_REST.API.stopStreamingIn(roomId, streamID, function(result) {
     console.log('External streaming-in:', streamID, 'in room:', roomId, 'stopped');
   }, function(status, error) {
     // HTTP status and error
     console.log(status, error);
   });
      */
-  var stopStreamingIn = function (room, stream, callback, callbackError) {
+  const stopStreamingIn = function(room, stream, callback, callbackError) {
     if (typeof stream !== 'string' || stream.trim().length === 0) {
       return callbackError('Invalid stream ID');
     }
     send(
-      'DELETE',
-      'rooms/' + room + '/streaming-ins/' + stream,
-      undefined,
-      function (result) {
-        callback(result);
-      },
-      callbackError
+        'DELETE',
+        'rooms/' + room + '/streaming-ins/' + stream,
+        undefined,
+        function(result) {
+          callback(result);
+        },
+        callbackError,
     );
   };
 
@@ -984,29 +981,29 @@ const REST = function () {
   /**
      * @function getStreamingOuts
      * @desc This function gets all the ongoing streaming-outs in the specified room.
-     * @memberOf OWT_REST.API
+     * @memberOf INFRAFRAME_REST.API
      * @param {string} room                          -Room ID.
      * @param {onStreamingOutList} callback          -Callback function on success
      * @param {function} callbackError               -Callback function on error
      * @example
   var roomId = '51c10d86909ad1f939000001';
-  OWT_REST.API.getStreamingOuts(roomId, function(streamingOuts) {
+  INFRAFRAME_REST.API.getStreamingOuts(roomId, function(streamingOuts) {
     console.log('Streaming-outs:', streamingOuts);
   }, function(status, error) {
     // HTTP status and error
     console.log(status, error);
   });
      */
-  var getStreamingOuts = function (room, callback, callbackError) {
+  const getStreamingOuts = function(room, callback, callbackError) {
     send(
-      'GET',
-      'rooms/' + room + '/streaming-outs/',
-      undefined,
-      function (streamingOutList) {
-        var result = JSON.parse(streamingOutList);
-        callback(result);
-      },
-      callbackError
+        'GET',
+        'rooms/' + room + '/streaming-outs/',
+        undefined,
+        function(streamingOutList) {
+          const result = JSON.parse(streamingOutList);
+          callback(result);
+        },
+        callbackError,
     );
   };
 
@@ -1022,7 +1019,7 @@ const REST = function () {
   /**
      * @function startStreamingOut
      * @desc This function starts a streaming-out to the specified room.
-     * @memberOf OWT_REST.API
+     * @memberOf INFRAFRAME_REST.API
      * @param {string} room                          -Room ID.
      * @param {string} protocol                      -Streaming-out protocol.
      * @param {string} url                           -The URL of the target streaming-out.
@@ -1055,23 +1052,23 @@ const REST = function () {
       }
     }
   };
-  OWT_REST.API.startStreamingOut(roomId, protocol, url, parameters, media, function(streamingOut) {
+  INFRAFRAME_REST.API.startStreamingOut(roomId, protocol, url, parameters, media, function(streamingOut) {
     console.log('Streaming-out:', streamingOut);
   }, function(status, error) {
     // HTTP status and error
     console.log(status, error);
   });
      */
-  var startStreamingOut = function (
-    room,
-    protocol,
-    url,
-    parameters,
-    media,
-    callback,
-    callbackError
+  const startStreamingOut = function(
+      room,
+      protocol,
+      url,
+      parameters,
+      media,
+      callback,
+      callbackError,
   ) {
-    var options = {
+    const options = {
       protocol: protocol,
       url: url,
       parameters: parameters,
@@ -1079,14 +1076,14 @@ const REST = function () {
     };
 
     send(
-      'POST',
-      'rooms/' + room + '/streaming-outs/',
-      options,
-      function (streamingOutRtn) {
-        var result = JSON.parse(streamingOutRtn);
-        callback(result);
-      },
-      callbackError
+        'POST',
+        'rooms/' + room + '/streaming-outs/',
+        options,
+        function(streamingOutRtn) {
+          const result = JSON.parse(streamingOutRtn);
+          callback(result);
+        },
+        callbackError,
     );
   };
 
@@ -1097,7 +1094,7 @@ const REST = function () {
   /**
      * @function updateStreamingOut
      * @desc This function updates a streaming-out's given attributes in the specified room.
-     * @memberOf OWT_REST.API
+     * @memberOf INFRAFRAME_REST.API
      * @param {string} room                          -Room ID
      * @param {string} id                            -Streaming-out ID
      * @param {Array.<{op: string, path: string, value: json}>} items -Attributes to be updated, with format following RFC6902(https://tools.ietf.org/html/rfc6902).
@@ -1106,14 +1103,14 @@ const REST = function () {
      * @example
   var roomId = '51c10d86909ad1f939000001';
   var id = '878889273471677';
-  OWT_REST.API.updateStreamingOut(roomId, id, [{op: 'replace', path: '/media/audio/from', value: '9836636255531'}], function(subscription) {
+  INFRAFRAME_REST.API.updateStreamingOut(roomId, id, [{op: 'replace', path: '/media/audio/from', value: '9836636255531'}], function(subscription) {
     console.log('Subscription:', subscription);
   }, function(status, error) {
     // HTTP status and error
     console.log(status, error);
   });
      */
-  var updateStreamingOut = function (room, id, items, callback, callbackError) {
+  const updateStreamingOut = function(room, id, items, callback, callbackError) {
     if (typeof id !== 'string' || id.trim().length === 0) {
       return callbackError('Invalid streamingOut ID');
     }
@@ -1121,21 +1118,21 @@ const REST = function () {
       return callbackError('Invalid update list');
     }
     send(
-      'PATCH',
-      'rooms/' + room + '/streaming-outs/' + id,
-      items,
-      function (streamingOutRtn) {
-        var result = JSON.parse(streamingOutRtn);
-        callback(result);
-      },
-      callbackError
+        'PATCH',
+        'rooms/' + room + '/streaming-outs/' + id,
+        items,
+        function(streamingOutRtn) {
+          const result = JSON.parse(streamingOutRtn);
+          callback(result);
+        },
+        callbackError,
     );
   };
 
   /**
      * @function stopStreamingOut
      * @desc This function stops the specified streaming-out in the specified room.
-     * @memberOf OWT_REST.API
+     * @memberOf INFRAFRAME_REST.API
      * @param {string} room                          -Room ID
      * @param {string} id                            -Streaming-out ID
      * @param {function} callback                    -Callback function on success
@@ -1143,25 +1140,25 @@ const REST = function () {
      * @example
   var roomId = '51c10d86909ad1f939000001';
   var id = '878889273471677';
-  OWT_REST.API.stopStreamingOut(roomId, id, function(result) {
+  INFRAFRAME_REST.API.stopStreamingOut(roomId, id, function(result) {
     console.log('Streaming-out:', id, 'in room:', roomId, 'stopped');
   }, function(status, error) {
     // HTTP status and error
     console.log(status, error);
   });
      */
-  var stopStreamingOut = function (room, id, callback, callbackError) {
+  const stopStreamingOut = function(room, id, callback, callbackError) {
     if (typeof id !== 'string' || id.trim().length === 0) {
       return callbackError('Invalid streamingOut ID');
     }
     send(
-      'DELETE',
-      'rooms/' + room + '/streaming-outs/' + id,
-      undefined,
-      function (result) {
-        callback(result);
-      },
-      callbackError
+        'DELETE',
+        'rooms/' + room + '/streaming-outs/' + id,
+        undefined,
+        function(result) {
+          callback(result);
+        },
+        callbackError,
     );
   };
 
@@ -1176,29 +1173,29 @@ const REST = function () {
   /**
      * @function getRecordings
      * @desc This function gets the all the ongoing recordings in the specified room.
-     * @memberOf OWT_REST.API
+     * @memberOf INFRAFRAME_REST.API
      * @param {string} room                          -Room ID.
      * @param {function} callback                    -Callback function on success
      * @param {function} callbackError               -Callback function on error
      * @example
   var roomId = '51c10d86909ad1f939000001';
-  OWT_REST.API.getRecordings(roomId, function(recordings) {
+  INFRAFRAME_REST.API.getRecordings(roomId, function(recordings) {
     console.log('Recordings:', recordings);
   }, function(status, error) {
     // HTTP status and error
     console.log(status, error);
   });
      */
-  var getRecordings = function (room, callback, callbackError) {
+  const getRecordings = function(room, callback, callbackError) {
     send(
-      'GET',
-      'rooms/' + room + '/recordings/',
-      undefined,
-      function (recordingList) {
-        var result = JSON.parse(recordingList);
-        callback(result);
-      },
-      callbackError
+        'GET',
+        'rooms/' + room + '/recordings/',
+        undefined,
+        function(recordingList) {
+          const result = JSON.parse(recordingList);
+          callback(result);
+        },
+        callbackError,
     );
   };
 
@@ -1214,7 +1211,7 @@ const REST = function () {
   /**
      * @function startRecording
      * @desc This function starts a recording in the specified room.
-     * @memberOf OWT_REST.API
+     * @memberOf INFRAFRAME_REST.API
      * @param {string} room                          -Room ID.
      * @param {string='mp4' | 'mkv' | 'auto'} container -The container type of the recording file, 'auto' by default.
      * @param {Object} media                         -The media description of the recording, which must follow the definition of object "MediaSubOptions" in section "3.3.11 Participant Starts a Subscription" in "Client-Portal Protocol.md" doc.
@@ -1234,34 +1231,34 @@ const REST = function () {
       }
     }
   };
-  OWT_REST.API.startRecording(roomId, container, media, function(recording) {
+  INFRAFRAME_REST.API.startRecording(roomId, container, media, function(recording) {
     console.log('recording:', recording);
   }, function(status, error) {
     // HTTP status and error
     console.log(status, error);
   });
      */
-  var startRecording = function (
-    room,
-    container,
-    media,
-    callback,
-    callbackError
+  const startRecording = function(
+      room,
+      container,
+      media,
+      callback,
+      callbackError,
   ) {
-    var options = {
+    const options = {
       container: container,
       media: media,
     };
 
     send(
-      'POST',
-      'rooms/' + room + '/recordings/',
-      options,
-      function (recordingRtn) {
-        var result = JSON.parse(recordingRtn);
-        callback(result);
-      },
-      callbackError
+        'POST',
+        'rooms/' + room + '/recordings/',
+        options,
+        function(recordingRtn) {
+          const result = JSON.parse(recordingRtn);
+          callback(result);
+        },
+        callbackError,
     );
   };
 
@@ -1272,7 +1269,7 @@ const REST = function () {
   /**
      * @function updateRecording
      * @desc This function updates a recording's given attributes in the specified room.
-     * @memberOf OWT_REST.API
+     * @memberOf INFRAFRAME_REST.API
      * @param {string} room                          -Room ID
      * @param {string} id                            -Recording ID
      * @param {Array.<{op: string, path: string, value: json}>} items -Attributes to be updated, with format following RFC6902(https://tools.ietf.org/html/rfc6902).
@@ -1281,14 +1278,14 @@ const REST = function () {
      * @example
   var roomId = '51c10d86909ad1f939000001';
   var id = '878889273471677';
-  OWT_REST.API.updateRecording(roomId, id, [{op: 'replace', path: '/media/audio/from', value: '9836636255531'}], function(subscription) {
+  INFRAFRAME_REST.API.updateRecording(roomId, id, [{op: 'replace', path: '/media/audio/from', value: '9836636255531'}], function(subscription) {
     console.log('Subscription:', subscription);
   }, function(status, error) {
     // HTTP status and error
     console.log(status, error);
   });
      */
-  var updateRecording = function (room, id, items, callback, callbackError) {
+  const updateRecording = function(room, id, items, callback, callbackError) {
     if (typeof id !== 'string' || id.trim().length === 0) {
       return callbackError('Invalid recording ID');
     }
@@ -1296,21 +1293,21 @@ const REST = function () {
       return callbackError('Invalid update list');
     }
     send(
-      'PATCH',
-      'rooms/' + room + '/recordings/' + id,
-      items,
-      function (recordingRtn) {
-        var result = JSON.parse(recordingRtn);
-        callback(result);
-      },
-      callbackError
+        'PATCH',
+        'rooms/' + room + '/recordings/' + id,
+        items,
+        function(recordingRtn) {
+          const result = JSON.parse(recordingRtn);
+          callback(result);
+        },
+        callbackError,
     );
   };
 
   /**
      * @function stopRecording
      * @desc This function stops the specified recording in the specified room.
-     * @memberOf OWT_REST.API
+     * @memberOf INFRAFRAME_REST.API
      * @param {string} room                          -Room ID
      * @param {string} id                            -Recording ID
      * @param {function} callback                    -Callback function on success
@@ -1318,25 +1315,25 @@ const REST = function () {
      * @example
   var roomId = '51c10d86909ad1f939000001';
   var id = '878889273471677';
-  OWT_REST.API.stopRecording(roomId, id, function(result) {
+  INFRAFRAME_REST.API.stopRecording(roomId, id, function(result) {
     console.log('Recording:', id, 'in room:', roomId, 'stopped');
   }, function(status, error) {
     // HTTP status and error
     console.log(status, error);
   });
      */
-  var stopRecording = function (room, id, callback, callbackError) {
+  const stopRecording = function(room, id, callback, callbackError) {
     if (typeof id !== 'string' || id.trim().length === 0) {
       return callbackError('Invalid recording ID');
     }
     send(
-      'DELETE',
-      'rooms/' + room + '/recordings/' + id,
-      undefined,
-      function (result) {
-        callback(result);
-      },
-      callbackError
+        'DELETE',
+        'rooms/' + room + '/recordings/' + id,
+        undefined,
+        function(result) {
+          callback(result);
+        },
+        callbackError,
     );
   };
 
@@ -1347,29 +1344,29 @@ const REST = function () {
   /**
      * @function getSipCalls
      * @desc This function gets the all the ongoing sip calls in the specified room.
-     * @memberOf OWT_REST.API
+     * @memberOf INFRAFRAME_REST.API
      * @param {string} room                          -Room ID.
      * @param {onSipCallList} callback               -Callback function on success
      * @param {function} callbackError               -Callback function on error
      * @example
   var roomId = '51c10d86909ad1f939000001';
-  OWT_REST.API.getSipCalls(roomId, function(sipCalls) {
+  INFRAFRAME_REST.API.getSipCalls(roomId, function(sipCalls) {
     console.log('SipCalls:', sipCalls);
   }, function(status, error) {
     // HTTP status and error
     console.log(status, error);
   });
      */
-  var getSipCalls = function (room, callback, callbackError) {
+  const getSipCalls = function(room, callback, callbackError) {
     send(
-      'GET',
-      'rooms/' + room + '/sipcalls/',
-      undefined,
-      function (sipCallList) {
-        var result = JSON.parse(sipCallList);
-        callback(result);
-      },
-      callbackError
+        'GET',
+        'rooms/' + room + '/sipcalls/',
+        undefined,
+        function(sipCallList) {
+          const result = JSON.parse(sipCallList);
+          callback(result);
+        },
+        callbackError,
     );
   };
 
@@ -1387,7 +1384,7 @@ const REST = function () {
   /**
      * @function makeSipCall
      * @desc This function makes a SIP call to the specified peer in the specified room.
-     * @memberOf OWT_REST.API
+     * @memberOf INFRAFRAME_REST.API
      * @param {string} room                          -Room ID.
      * @param {string} peerUri                       -The the peer URI to call.
      * @param {Object} mediaIn                       -The media requirements from peer sip endpoint to room.
@@ -1417,36 +1414,36 @@ const REST = function () {
       }
     }
   };
-  OWT_REST.API.makeSipCall(roomId, peerUri, mediaIn, mediaOut, function(sipCallInfo) {
+  INFRAFRAME_REST.API.makeSipCall(roomId, peerUri, mediaIn, mediaOut, function(sipCallInfo) {
     console.log('initiate sip call OK', sipCallInfo);
   }, function(status, error) {
     // HTTP status and error
     console.log(status, error);
   });
      */
-  var makeSipCall = function (
-    room,
-    peerUri,
-    mediaIn,
-    mediaOut,
-    callback,
-    callbackError
+  const makeSipCall = function(
+      room,
+      peerUri,
+      mediaIn,
+      mediaOut,
+      callback,
+      callbackError,
   ) {
-    var options = {
+    const options = {
       peerURI: peerUri,
       mediaIn: mediaIn,
       mediaOut: mediaOut,
     };
 
     send(
-      'POST',
-      'rooms/' + room + '/sipcalls/',
-      options,
-      function (sipCallInfo) {
-        var result = JSON.parse(sipCallInfo);
-        callback(result);
-      },
-      callbackError
+        'POST',
+        'rooms/' + room + '/sipcalls/',
+        options,
+        function(sipCallInfo) {
+          const result = JSON.parse(sipCallInfo);
+          callback(result);
+        },
+        callbackError,
     );
   };
 
@@ -1457,7 +1454,7 @@ const REST = function () {
   /**
      * @function updateSipCall
      * @desc This function updates a sip call's specified output attributes in the specified room.
-     * @memberOf OWT_REST.API
+     * @memberOf INFRAFRAME_REST.API
      * @param {string} room                          -Room ID
      * @param {string} id                            -Sip call ID
      * @param {Array.<{op: string, path: string, value: json}>} items -Attributes to be updated, with format following RFC6902(https://tools.ietf.org/html/rfc6902).
@@ -1466,14 +1463,14 @@ const REST = function () {
      * @example
   var roomId = '51c10d86909ad1f939000001';
   var id = '878889273471677';
-  OWT_REST.API.updateSipCall(roomId, id, [{op: 'replace', path: '/media/audio/from', value: '9836636255531'}], function(sipCallInfo) {
+  INFRAFRAME_REST.API.updateSipCall(roomId, id, [{op: 'replace', path: '/media/audio/from', value: '9836636255531'}], function(sipCallInfo) {
     console.log('updated sip call infor:', sipCallInfo);
   }, function(status, error) {
     // HTTP status and error
     console.log(status, error);
   });
      */
-  var updateSipCall = function (room, id, items, callback, callbackError) {
+  const updateSipCall = function(room, id, items, callback, callbackError) {
     if (typeof id !== 'string' || id.trim().length === 0) {
       return callbackError('Invalid sip call ID');
     }
@@ -1481,21 +1478,21 @@ const REST = function () {
       return callbackError('Invalid update list');
     }
     send(
-      'PATCH',
-      'rooms/' + room + '/sipcalls/' + id,
-      items,
-      function (sipCallInfoRtn) {
-        var result = JSON.parse(sipCallInfoRtn);
-        callback(result);
-      },
-      callbackError
+        'PATCH',
+        'rooms/' + room + '/sipcalls/' + id,
+        items,
+        function(sipCallInfoRtn) {
+          const result = JSON.parse(sipCallInfoRtn);
+          callback(result);
+        },
+        callbackError,
     );
   };
 
   /**
      * @function endSipCall
      * @desc This function ends the specified sip call in the specified room.
-     * @memberOf OWT_REST.API
+     * @memberOf INFRAFRAME_REST.API
      * @param {string} room                          -Room ID
      * @param {string} id                            -Sip call ID
      * @param {function} callback                    -Callback function on success
@@ -1503,25 +1500,25 @@ const REST = function () {
      * @example
   var roomId = '51c10d86909ad1f939000001';
   var id = '878889273471677';
-  OWT_REST.API.endSipCall(roomId, id, function(result) {
+  INFRAFRAME_REST.API.endSipCall(roomId, id, function(result) {
     console.log('Sip call:', id, 'in room:', roomId, 'ended');
   }, function(status, error) {
     // HTTP status and error
     console.log(status, error);
   });
      */
-  var endSipCall = function (room, id, callback, callbackError) {
+  const endSipCall = function(room, id, callback, callbackError) {
     if (typeof id !== 'string' || id.trim().length === 0) {
       return callbackError('Invalid sip call ID');
     }
     send(
-      'DELETE',
-      'rooms/' + room + '/sipcalls/' + id,
-      undefined,
-      function (result) {
-        callback(result);
-      },
-      callbackError
+        'DELETE',
+        'rooms/' + room + '/sipcalls/' + id,
+        undefined,
+        function(result) {
+          callback(result);
+        },
+        callbackError,
     );
   };
 
@@ -1535,29 +1532,29 @@ const REST = function () {
   /**
      * @function getAnalytics
      * @desc This function gets the all the ongoing analytics in the specified room.
-     * @memberOf OWT_REST.API
+     * @memberOf INFRAFRAME_REST.API
      * @param {string} room                          -Room ID.
      * @param {function} callback                    -Callback function on success
      * @param {function} callbackError               -Callback function on error
      * @example
   var roomId = '51c10d86909ad1f939000001';
-  OWT_REST.API.getAnalytics(roomId, function(analyticsList) {
+  INFRAFRAME_REST.API.getAnalytics(roomId, function(analyticsList) {
     console.log('Analytics:', analyticsList);
   }, function(status, error) {
     // HTTP status and error
     console.log(status, error);
   });
      */
-  var getAnalytics = function (room, callback, callbackError) {
+  const getAnalytics = function(room, callback, callbackError) {
     send(
-      'GET',
-      'rooms/' + room + '/analytics/',
-      undefined,
-      function (analyticsList) {
-        var result = JSON.parse(analyticsList);
-        callback(result);
-      },
-      callbackError
+        'GET',
+        'rooms/' + room + '/analytics/',
+        undefined,
+        function(analyticsList) {
+          const result = JSON.parse(analyticsList);
+          callback(result);
+        },
+        callbackError,
     );
   };
 
@@ -1572,7 +1569,7 @@ const REST = function () {
   /**
      * @function startAnalytics
      * @desc This function starts a analytics in the specified room.
-     * @memberOf OWT_REST.API
+     * @memberOf INFRAFRAME_REST.API
      * @param {string} room                          -Room ID.
      * @param {string} algorithm                     -The algorithm ID.
      * @param {Object} media                         -The media description of the analytics, which must follow the definition of object "MediaSubOptions" in section "3.3.11 Participant Starts a Subscription" in "Client-Portal Protocol.md" doc.
@@ -1592,41 +1589,41 @@ const REST = function () {
       }
     }
   };
-  OWT_REST.API.startAnalytics(roomId, algorithm, media, function(analytics) {
+  INFRAFRAME_REST.API.startAnalytics(roomId, algorithm, media, function(analytics) {
     console.log('analytics:', analytics);
   }, function(status, error) {
     // HTTP status and error
     console.log(status, error);
   });
      */
-  var startAnalytics = function (
-    room,
-    algorithm,
-    media,
-    callback,
-    callbackError
+  const startAnalytics = function(
+      room,
+      algorithm,
+      media,
+      callback,
+      callbackError,
   ) {
-    var options = {
+    const options = {
       algorithm: algorithm,
       media: media,
     };
 
     send(
-      'POST',
-      'rooms/' + room + '/analytics/',
-      options,
-      function (analyticsRtn) {
-        var result = JSON.parse(analyticsRtn);
-        callback(result);
-      },
-      callbackError
+        'POST',
+        'rooms/' + room + '/analytics/',
+        options,
+        function(analyticsRtn) {
+          const result = JSON.parse(analyticsRtn);
+          callback(result);
+        },
+        callbackError,
     );
   };
 
   /**
      * @function stopAnalytics
      * @desc This function stops the specified analytics in the specified room.
-     * @memberOf OWT_REST.API
+     * @memberOf INFRAFRAME_REST.API
      * @param {string} room                          -Room ID
      * @param {string} id                            -Analytics ID
      * @param {function} callback                    -Callback function on success
@@ -1634,32 +1631,32 @@ const REST = function () {
      * @example
   var roomId = '51c10d86909ad1f939000001';
   var id = '878889273471677';
-  OWT_REST.API.stopAnalytics(roomId, id, function(result) {
+  INFRAFRAME_REST.API.stopAnalytics(roomId, id, function(result) {
     console.log('Analytics:', id, 'in room:', roomId, 'stopped');
   }, function(status, error) {
     // HTTP status and error
     console.log(status, error);
   });
      */
-  var stopAnalytics = function (room, id, callback, callbackError) {
+  const stopAnalytics = function(room, id, callback, callbackError) {
     if (typeof id !== 'string' || id.trim().length === 0) {
       return callbackError('Invalid analytics ID');
     }
     send(
-      'DELETE',
-      'rooms/' + room + '/analytics/' + id,
-      undefined,
-      function (result) {
-        callback(result);
-      },
-      callbackError
+        'DELETE',
+        'rooms/' + room + '/analytics/' + id,
+        undefined,
+        function(result) {
+          callback(result);
+        },
+        callbackError,
     );
   };
 
   /**
      * @function createToken
      * @desc This function creates a new token when a new participant to a room needs to be added.
-     * @memberOf OWT_REST.API
+     * @memberOf INFRAFRAME_REST.API
      * @param {string} room                          -Room ID
      * @param {string} user                          -Participant's user ID
      * @param {string} role                          -Participant's role
@@ -1672,43 +1669,44 @@ const REST = function () {
   var role = 'guest';
   // Only isp and region are supported in preference currently, please see server's document for details.
   var preference = {isp: 'isp', region: 'region'};
-  OWT_REST.API.createToken(roomId, user, role, preference, function(token) {
+  INFRAFRAME_REST.API.createToken(roomId, user, role, preference, function(token) {
     console.log ('Token created:' token);
   }, function(status, error) {
     // HTTP status and error
     console.log(status, error);
   });
      */
-  var createToken = function (
-    room,
-    user,
-    role,
-    preference,
-    callback,
-    callbackError
+  const createToken = function(
+      room,
+      user,
+      role,
+      preference,
+      callback,
+      callbackError,
   ) {
     if (
       typeof room !== 'string' ||
       typeof user !== 'string' ||
       typeof role !== 'string'
     ) {
-      if (typeof callbackError === 'function')
+      if (typeof callbackError === 'function') {
         callbackError(400, 'Invalid argument.');
+      }
       return;
     }
     send(
-      'POST',
-      'rooms/' + room + '/tokens/',
-      { preference: preference, user: user, role: role },
-      callback,
-      callbackError
+        'POST',
+        'rooms/' + room + '/tokens/',
+        {preference: preference, user: user, role: role},
+        callback,
+        callbackError,
     );
   };
 
   return {
     init: init,
 
-    //Room management.
+    // Room management.
     createRoom: createRoom,
     getRooms: getRooms,
     getRoom: getRoom,
@@ -1716,48 +1714,46 @@ const REST = function () {
     updateRoomPartially: updateRoomPartially,
     deleteRoom: deleteRoom,
 
-    //Participants management.
+    // Participants management.
     getParticipants: getParticipants,
     getParticipant: getParticipant,
     updateParticipant: updateParticipant,
     dropParticipant: dropParticipant,
 
-    //Streams management.
+    // Streams management.
     getStreams: getStreams,
     getStream: getStream,
     updateStream: updateStream,
     deleteStream: deleteStream,
 
-    //Streaming-ins management.
+    // Streaming-ins management.
     startStreamingIn: startStreamingIn,
     stopStreamingIn: stopStreamingIn,
 
-    //Streaming-outs management
+    // Streaming-outs management
     getStreamingOuts: getStreamingOuts,
     startStreamingOut: startStreamingOut,
     updateStreamingOut: updateStreamingOut,
     stopStreamingOut: stopStreamingOut,
 
-    //Server-side recordings management
+    // Server-side recordings management
     getRecordings: getRecordings,
     startRecording: startRecording,
     updateRecording: updateRecording,
     stopRecording: stopRecording,
 
-    //Analytics management
+    // Analytics management
     getAnalytics: getAnalytics,
     startAnalytics: startAnalytics,
     stopAnalytics: stopAnalytics,
 
-    //Sip calls management
+    // Sip calls management
     getSipCalls: getSipCalls,
     makeSipCall: makeSipCall,
     updateSipCall: updateSipCall,
     endSipCall: endSipCall,
 
-    //Tokens management.
+    // Tokens management.
     createToken: createToken,
   };
-};
-
-export default REST;
+})(INFRAFRAME_REST);

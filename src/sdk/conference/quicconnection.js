@@ -69,12 +69,12 @@ export class QuicConnection extends EventDispatcher {
 
   async _initReceiveStreamReader() {
     const receiveStreamReader =
-        this._quicTransport.incomingBidirectionalStreams.getReader();
+      this._quicTransport.incomingBidirectionalStreams.getReader();
     Logger.info('Reader: ' + receiveStreamReader);
     let receivingDone = false;
     while (!receivingDone) {
       const {value: receiveStream, done: readingReceiveStreamsDone} =
-          await receiveStreamReader.read();
+        await receiveStreamReader.read();
       Logger.info('New stream received');
       if (readingReceiveStreamsDone) {
         receivingDone = true;
@@ -94,8 +94,10 @@ export class QuicConnection extends EventDispatcher {
       const subscriptionId = this._uint8ArrayToUuid(uuid);
       this._quicStreams.set(subscriptionId, receiveStream);
       if (this._subscribePromises.has(subscriptionId)) {
-        const subscription =
-            this._createSubscription(subscriptionId, receiveStream);
+        const subscription = this._createSubscription(
+            subscriptionId,
+            receiveStream,
+        );
         this._subscribePromises.get(subscriptionId).resolve(subscription);
       }
     }
@@ -119,7 +121,7 @@ export class QuicConnection extends EventDispatcher {
     // 128 bit of zero indicates this is a stream for signaling.
     writer.write(new Uint8Array(16));
     // Send token as described in
-    // https://github.com/open-webrtc-toolkit/owt-server/blob/20e8aad216cc446095f63c409339c34c7ee770ee/doc/design/quic-transport-payload-format.md.
+    // https://github.com/open-webrtc-toolkit/infraframe-server/blob/20e8aad216cc446095f63c409339c34c7ee770ee/doc/design/quic-transport-payload-format.md.
     const encoder = new TextEncoder();
     const encodedToken = encoder.encode(token);
     writer.write(Uint32Array.of(encodedToken.length));
@@ -163,12 +165,16 @@ export class QuicConnection extends EventDispatcher {
     writer.releaseLock();
     Logger.info('publish id');
     this._quicStreams.set(publicationId, quicStream);
-    const publication = new Publication(publicationId, () => {
-      this._signaling.sendSignalingMessage('unpublish', {id: publication})
-          .catch((e) => {
-            Logger.warning('MCU returns negative ack for unpublishing, ' + e);
-          });
-    } /* TODO: getStats, mute, unmute is not implemented */);
+    const publication = new Publication(
+        publicationId,
+        () => {
+          this._signaling
+              .sendSignalingMessage('unpublish', {id: publication})
+              .catch((e) => {
+                Logger.warning('MCU returns negative ack for unpublishing, ' + e);
+              });
+        }, /* TODO: getStats, mute, unmute is not implemented */
+    );
     return publication;
   }
 
@@ -206,16 +212,20 @@ export class QuicConnection extends EventDispatcher {
           })
           .then((data) => {
             if (this._quicStreams.has(data.id)) {
-              // QUIC stream created before signaling returns.
+            // QUIC stream created before signaling returns.
               const subscription = this._createSubscription(
-                  data.id, this._quicStreams.get(data.id));
+                  data.id,
+                  this._quicStreams.get(data.id),
+              );
               resolve(subscription);
             } else {
               this._quicStreams.set(data.id, null);
               // QUIC stream is not created yet, resolve promise after getting
               // QUIC stream.
-              this._subscribePromises.set(
-                  data.id, {resolve: resolve, reject: reject});
+              this._subscribePromises.set(data.id, {
+                resolve: resolve,
+                reject: reject,
+              });
             }
           });
     });

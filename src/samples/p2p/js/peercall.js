@@ -23,7 +23,7 @@ const rtcConfiguration = {
 
 const signaling = new SignalingChannel();
 let publicationForCamera;
-const p2p = new Owt.P2P.P2PClient({
+const p2p = new Infraframe.P2P.P2PClient({
   audioEncodings: true,
   videoEncodings: [{
     codec: {
@@ -68,10 +68,10 @@ $(document).ready(function() {
       },
     };
     let mediaStream;
-    Owt.Base.MediaStreamFactory.createMediaStream(config).then(
+    Infraframe.Base.MediaStreamFactory.createMediaStream(config).then(
       (stream) => {
         mediaStream = stream;
-        screenStream = new Owt.Base.LocalStream(mediaStream, new Owt
+        screenStream = new Infraframe.Base.LocalStream(mediaStream, new Infraframe
           .Base.StreamSourceInfo('screen-cast', 'screen-cast'));
         $('#local').children('video').get(0).srcObject = screenStream
           .mediaStream;
@@ -104,16 +104,16 @@ $(document).ready(function() {
         console.log('Failed to share video.');
       }); // Publish local stream to remote client
     } else {
-      const audioConstraintsForMic = new Owt.Base.AudioTrackConstraints(
-        Owt.Base.AudioSourceInfo.MIC);
-      const videoConstraintsForCamera = new Owt.Base
-        .VideoTrackConstraints(Owt.Base.VideoSourceInfo.CAMERA);
+      const audioConstraintsForMic = new Infraframe.Base.AudioTrackConstraints(
+        Infraframe.Base.AudioSourceInfo.MIC);
+      const videoConstraintsForCamera = new Infraframe.Base
+        .VideoTrackConstraints(Infraframe.Base.VideoSourceInfo.CAMERA);
       let mediaStream;
-      Owt.Base.MediaStreamFactory.createMediaStream(new Owt.Base
+      Infraframe.Base.MediaStreamFactory.createMediaStream(new Infraframe.Base
         .StreamConstraints(audioConstraintsForMic,
           videoConstraintsForCamera)).then((stream) => {
         mediaStream = stream;
-        localStream = new Owt.Base.LocalStream(mediaStream, new Owt
+        localStream = new Infraframe.Base.LocalStream(mediaStream, new Infraframe
           .Base.StreamSourceInfo('mic', 'camera'));
         $('#local').children('video').get(0).srcObject = localStream
           .mediaStream;

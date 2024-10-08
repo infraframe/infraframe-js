@@ -1,10 +1,10 @@
 # How to run p2p sample
 
 ## Step 1: Run p2p server
-To run the server, you need to install node and npm, then change into the [owt-server-p2p](https://github.com/open-webrtc-toolkit/owt-server-p2p) source directory, and install all modules listed as dependencies in package.json by using command `npm install`  .
+To run the server, you need to install node and npm, then change into the [infraframe-server-p2p](https://github.com/open-webrtc-toolkit/infraframe-server-p2p) source directory, and install all modules listed as dependencies in package.json by using command `npm install`  .
 After the dependencies are successfully installed, you can run the peer server by using the command `node peerserver.js`. It will listen on ports 8095/8096.
 
-## Step 2: Build OWT JS SDK
+## Step 2: Build INFRAFRAME JS SDK
 If you haven't already, read the top-level README.md for how to use grunt to build the SDK into the dist/ subdirectory.
 
 ## Step 3: Deploy p2p sample page and SDK on web server

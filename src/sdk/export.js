@@ -1,5 +1,4 @@
 // Copyright (C) <2018> Intel Corporation
-// Copyright (C) <2024> InfraFrame team
 //
 // SPDX-License-Identifier: Apache-2.0
 
@@ -8,13 +7,21 @@
 import * as base from './base/export.js';
 import * as p2p from './p2p/export.js';
 import * as conference from './conference/export.js';
-import * as rest from './rest/API.js';
 
-const InfraFrame = {
-  Base: base,
-  P2P: p2p,
-  Conference: conference,
-  REST: rest,
-};
+/**
+ * Base objects for both P2P and conference.
+ * @namespace Infraframe.Base
+ */
+export const Base = base;
 
-export default InfraFrame;
+/**
+ * P2P WebRTC connections.
+ * @namespace Infraframe.P2P
+ */
+export const P2P = p2p;
+
+/**
+ * WebRTC connections with conference server.
+ * @namespace Infraframe.Conference
+ */
+export const Conference = conference;

@@ -6,7 +6,7 @@
 
 'use strict';
 import Logger from '../base/logger.js';
-import {EventDispatcher, OwtEvent} from '../base/event.js';
+import {EventDispatcher, InfraframeEvent} from '../base/event.js';
 import * as ErrorModule from './error.js';
 import P2PPeerConnectionChannel from './peerconnection-channel.js';
 
@@ -20,28 +20,28 @@ const ConnectionState = {
 /**
  * @class P2PClientConfiguration
  * @classDesc Configuration for P2PClient.
- * @memberOf Owt.P2P
+ * @memberOf Infraframe.P2P
  * @hideconstructor
  */
 const P2PClientConfiguration = function() {
   /**
-   * @member {?Array<Owt.Base.AudioEncodingParameters>} audioEncoding
+   * @member {?Array<Infraframe.Base.AudioEncodingParameters>} audioEncoding
    * @instance
    * @desc Encoding parameters for publishing audio tracks.
-   * @memberof Owt.P2P.P2PClientConfiguration
+   * @memberof Infraframe.P2P.P2PClientConfiguration
    */
   this.audioEncoding = undefined;
   /**
-   * @member {?Array<Owt.Base.VideoEncodingParameters>} videoEncoding
+   * @member {?Array<Infraframe.Base.VideoEncodingParameters>} videoEncoding
    * @instance
    * @desc Encoding parameters for publishing video tracks.
-   * @memberof Owt.P2P.P2PClientConfiguration
+   * @memberof Infraframe.P2P.P2PClientConfiguration
    */
   this.videoEncoding = undefined;
   /**
    * @member {?RTCConfiguration} rtcConfiguration
    * @instance
-   * @memberof Owt.P2P.P2PClientConfiguration
+   * @memberof Infraframe.P2P.P2PClientConfiguration
    * @desc It will be used for creating PeerConnection.
    * @see {@link https://www.w3.org/TR/webrtc/#rtcconfiguration-dictionary|RTCConfiguration Dictionary of WebRTC 1.0}.
    * @example
@@ -72,12 +72,12 @@ const P2PClientConfiguration = function() {
  * | --------------------- | ---------------- | ---------------- |
  * | streamadded           | StreamEvent      | A new stream is sent from remote endpoint. |
  * | messagereceived       | MessageEvent     | A new message is received. |
- * | serverdisconnected    | OwtEvent         | Disconnected from signaling server. |
+ * | serverdisconnected    | InfraframeEvent         | Disconnected from signaling server. |
  *
- * @memberof Owt.P2P
- * @extends Owt.Base.EventDispatcher
+ * @memberof Infraframe.P2P
+ * @extends Infraframe.Base.EventDispatcher
  * @constructor
- * @param {?Owt.P2P.P2PClientConfiguration } configuration Configuration for Owt.P2P.P2PClient.
+ * @param {?Infraframe.P2P.P2PClientConfiguration } configuration Configuration for Infraframe.P2P.P2PClient.
  * @param {Object} signalingChannel A channel for sending and receiving signaling messages.
  */
 const P2PClient = function(configuration, signalingChannel) {
@@ -119,12 +119,12 @@ const P2PClient = function(configuration, signalingChannel) {
 
   signaling.onServerDisconnected = function() {
     state = ConnectionState.READY;
-    self.dispatchEvent(new OwtEvent('serverdisconnected'));
+    self.dispatchEvent(new InfraframeEvent('serverdisconnected'));
   };
 
   /**
    * @member {array} allowedRemoteIds
-   * @memberof Owt.P2P.P2PClient
+   * @memberof Infraframe.P2P.P2PClient
    * @instance
    * @desc Only allowed remote endpoint IDs are able to publish stream or send message to current endpoint. Removing an ID from allowedRemoteIds does stop existing connection with certain endpoint. Please call stop to stop the PeerConnection.
    */
@@ -134,7 +134,7 @@ const P2PClient = function(configuration, signalingChannel) {
    * @function connect
    * @instance
    * @desc Connect to signaling server. Since signaling can be customized, this method does not define how a token looks like. SDK passes token to signaling channel without changes.
-   * @memberof Owt.P2P.P2PClient
+   * @memberof Infraframe.P2P.P2PClient
    * @param {string} token A token for connecting to signaling server. The format of this token depends on signaling server's requirement.
    * @return {Promise<object, Error>} It returns a promise resolved with an object returned by signaling channel once signaling channel reports connection has been established.
    */
@@ -162,7 +162,7 @@ const P2PClient = function(configuration, signalingChannel) {
    * @function disconnect
    * @instance
    * @desc Disconnect from the signaling channel. It stops all existing sessions with remote endpoints.
-   * @memberof Owt.P2P.P2PClient
+   * @memberof Infraframe.P2P.P2PClient
    */
   this.disconnect = function() {
     if (state == ConnectionState.READY) {
@@ -179,10 +179,10 @@ const P2PClient = function(configuration, signalingChannel) {
    * @function publish
    * @instance
    * @desc Publish a stream to a remote endpoint.
-   * @memberof Owt.P2P.P2PClient
+   * @memberof Infraframe.P2P.P2PClient
    * @param {string} remoteId Remote endpoint's ID.
-   * @param {Owt.Base.LocalStream} stream An Owt.Base.LocalStream to be published.
-   * @return {Promise<Owt.Base.Publication, Error>} A promised that resolves when remote side received the certain stream. However, remote endpoint may not display this stream, or ignore it.
+   * @param {Infraframe.Base.LocalStream} stream An Infraframe.Base.LocalStream to be published.
+   * @return {Promise<Infraframe.Base.Publication, Error>} A promised that resolves when remote side received the certain stream. However, remote endpoint may not display this stream, or ignore it.
    */
   this.publish = function(remoteId, stream) {
     if (state !== ConnectionState.CONNECTED) {
@@ -201,7 +201,7 @@ const P2PClient = function(configuration, signalingChannel) {
    * @function send
    * @instance
    * @desc Send a message to remote endpoint.
-   * @memberof Owt.P2P.P2PClient
+   * @memberof Infraframe.P2P.P2PClient
    * @param {string} remoteId Remote endpoint's ID.
    * @param {string} message Message to be sent. It should be a string.
    * @return {Promise<undefined, Error>} It returns a promise resolved when remote endpoint received certain message.
@@ -223,7 +223,7 @@ const P2PClient = function(configuration, signalingChannel) {
    * @function stop
    * @instance
    * @desc Clean all resources associated with given remote endpoint. It may include RTCPeerConnection, RTCRtpTransceiver and RTCDataChannel. It still possible to publish a stream, or send a message to given remote endpoint after stop.
-   * @memberof Owt.P2P.P2PClient
+   * @memberof Infraframe.P2P.P2PClient
    * @param {string} remoteId Remote endpoint's ID.
    * @return {undefined}
    */
@@ -243,7 +243,7 @@ const P2PClient = function(configuration, signalingChannel) {
    * @function getStats
    * @instance
    * @desc Get stats of underlying PeerConnection.
-   * @memberof Owt.P2P.P2PClient
+   * @memberof Infraframe.P2P.P2PClient
    * @param {string} remoteId Remote endpoint's ID.
    * @return {Promise<RTCStatsReport, Error>} It returns a promise resolved with an RTCStatsReport or reject with an Error if there is no connection with specific user.
    */
@@ -261,7 +261,7 @@ const P2PClient = function(configuration, signalingChannel) {
    * @function getPeerConnection
    * @instance
    * @desc Get underlying PeerConnection.
-   * @memberof Owt.P2P.P2PClient
+   * @memberof Infraframe.P2P.P2PClient
    * @param {string} remoteId Remote endpoint's ID.
    * @return {Promise<RTCPeerConnection, Error>} It returns a promise resolved
    *     with an RTCPeerConnection or reject with an Error if there is no

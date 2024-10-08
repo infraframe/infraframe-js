@@ -31,7 +31,7 @@
 /**
  * @class EventDispatcher
  * @classDesc A shim for EventTarget. Might be changed to EventTarget later.
- * @memberof Owt.Base
+ * @memberof Infraframe.Base
  * @hideconstructor
  */
 export const EventDispatcher = function() {
@@ -46,7 +46,7 @@ export const EventDispatcher = function() {
    * corresponding event. It's shortened form is on(eventType, listener). See
    * the event description in the following table.
    * @instance
-   * @memberof Owt.Base.EventDispatcher
+   * @memberof Infraframe.Base.EventDispatcher
    * @param {string} eventType Event string.
    * @param {function} listener Callback function.
    */
@@ -61,7 +61,7 @@ export const EventDispatcher = function() {
    * @function removeEventListener
    * @desc This function removes a registered event listener.
    * @instance
-   * @memberof Owt.Base.EventDispatcher
+   * @memberof Infraframe.Base.EventDispatcher
    * @param {string} eventType Event string.
    * @param {function} listener Callback function.
    */
@@ -79,7 +79,7 @@ export const EventDispatcher = function() {
    * @function clearEventListener
    * @desc This function removes all event listeners for one type.
    * @instance
-   * @memberof Owt.Base.EventDispatcher
+   * @memberof Infraframe.Base.EventDispatcher
    * @param {string} eventType Event string.
    */
   this.clearEventListener = function(eventType) {
@@ -99,12 +99,12 @@ export const EventDispatcher = function() {
 };
 
 /**
- * @class OwtEvent
- * @classDesc Class OwtEvent represents a generic Event in the library.
- * @memberof Owt.Base
+ * @class InfraframeEvent
+ * @classDesc Class InfraframeEvent represents a generic Event in the library.
+ * @memberof Infraframe.Base
  * @hideconstructor
  */
-export class OwtEvent {
+export class InfraframeEvent {
   // eslint-disable-next-line require-jsdoc
   constructor(type) {
     this.type = type;
@@ -114,30 +114,30 @@ export class OwtEvent {
 /**
  * @class MessageEvent
  * @classDesc Class MessageEvent represents a message Event in the library.
- * @memberof Owt.Base
+ * @memberof Infraframe.Base
  * @hideconstructor
  */
-export class MessageEvent extends OwtEvent {
+export class MessageEvent extends InfraframeEvent {
   // eslint-disable-next-line require-jsdoc
   constructor(type, init) {
     super(type);
     /**
      * @member {string} origin
      * @instance
-     * @memberof Owt.Base.MessageEvent
+     * @memberof Infraframe.Base.MessageEvent
      * @desc ID of the remote endpoint who published this stream.
      */
     this.origin = init.origin;
     /**
      * @member {string} message
      * @instance
-     * @memberof Owt.Base.MessageEvent
+     * @memberof Infraframe.Base.MessageEvent
      */
     this.message = init.message;
     /**
      * @member {string} to
      * @instance
-     * @memberof Owt.Base.MessageEvent
+     * @memberof Infraframe.Base.MessageEvent
      * @desc Values could be "all", "me" in conference mode, or undefined in
      * P2P mode.
      */
@@ -148,17 +148,17 @@ export class MessageEvent extends OwtEvent {
 /**
  * @class ErrorEvent
  * @classDesc Class ErrorEvent represents an error Event in the library.
- * @memberof Owt.Base
+ * @memberof Infraframe.Base
  * @hideconstructor
  */
-export class ErrorEvent extends OwtEvent {
+export class ErrorEvent extends InfraframeEvent {
   // eslint-disable-next-line require-jsdoc
   constructor(type, init) {
     super(type);
     /**
      * @member {Error} error
      * @instance
-     * @memberof Owt.Base.ErrorEvent
+     * @memberof Infraframe.Base.ErrorEvent
      */
     this.error = init.error;
   }
@@ -167,17 +167,17 @@ export class ErrorEvent extends OwtEvent {
 /**
  * @class MuteEvent
  * @classDesc Class MuteEvent represents a mute or unmute event.
- * @memberof Owt.Base
+ * @memberof Infraframe.Base
  * @hideconstructor
  */
-export class MuteEvent extends OwtEvent {
+export class MuteEvent extends InfraframeEvent {
   // eslint-disable-next-line require-jsdoc
   constructor(type, init) {
     super(type);
     /**
-     * @member {Owt.Base.TrackKind} kind
+     * @member {Infraframe.Base.TrackKind} kind
      * @instance
-     * @memberof Owt.Base.MuteEvent
+     * @memberof Infraframe.Base.MuteEvent
      */
     this.kind = init.kind;
   }

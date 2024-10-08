@@ -9,7 +9,7 @@ import {EventDispatcher} from '../base/event.js';
 
 /**
  * @class AudioPublicationSettings
- * @memberOf Owt.Base
+ * @memberOf Infraframe.Base
  * @classDesc The audio settings of a publication.
  * @hideconstructor
  */
@@ -17,9 +17,9 @@ export class AudioPublicationSettings {
   // eslint-disable-next-line require-jsdoc
   constructor(codec) {
     /**
-     * @member {?Owt.Base.AudioCodecParameters} codec
+     * @member {?Infraframe.Base.AudioCodecParameters} codec
      * @instance
-     * @memberof Owt.Base.AudioPublicationSettings
+     * @memberof Infraframe.Base.AudioPublicationSettings
      */
     this.codec = codec;
   }
@@ -27,7 +27,7 @@ export class AudioPublicationSettings {
 
 /**
  * @class VideoPublicationSettings
- * @memberOf Owt.Base
+ * @memberOf Infraframe.Base
  * @classDesc The video settings of a publication.
  * @hideconstructor
  */
@@ -36,42 +36,42 @@ export class VideoPublicationSettings {
   constructor(codec, resolution, frameRate,
       bitrate, keyFrameInterval, rid) {
     /**
-     * @member {?Owt.Base.VideoCodecParameters} codec
+     * @member {?Infraframe.Base.VideoCodecParameters} codec
      * @instance
-     * @memberof Owt.Base.VideoPublicationSettings
+     * @memberof Infraframe.Base.VideoPublicationSettings
      */
     this.codec=codec,
     /**
-     * @member {?Owt.Base.Resolution} resolution
+     * @member {?Infraframe.Base.Resolution} resolution
      * @instance
-     * @memberof Owt.Base.VideoPublicationSettings
+     * @memberof Infraframe.Base.VideoPublicationSettings
      */
     this.resolution=resolution;
     /**
      * @member {?number} frameRates
      * @instance
      * @classDesc Frames per second.
-     * @memberof Owt.Base.VideoPublicationSettings
+     * @memberof Infraframe.Base.VideoPublicationSettings
      */
     this.frameRate=frameRate;
     /**
      * @member {?number} bitrate
      * @instance
-     * @memberof Owt.Base.VideoPublicationSettings
+     * @memberof Infraframe.Base.VideoPublicationSettings
      */
     this.bitrate=bitrate;
     /**
      * @member {?number} keyFrameIntervals
      * @instance
      * @classDesc The time interval between key frames. Unit: second.
-     * @memberof Owt.Base.VideoPublicationSettings
+     * @memberof Infraframe.Base.VideoPublicationSettings
      */
     this.keyFrameInterval=keyFrameInterval;
     /**
      * @member {?number} rid
      * @instance
      * @classDesc Restriction identifier to identify the RTP Streams within an RTP session.
-     * @memberof Owt.Base.VideoPublicationSettings
+     * @memberof Infraframe.Base.VideoPublicationSettings
      */
     this.rid=rid;
   }
@@ -79,7 +79,7 @@ export class VideoPublicationSettings {
 
 /**
  * @class PublicationSettings
- * @memberOf Owt.Base
+ * @memberOf Infraframe.Base
  * @classDesc The settings of a publication.
  * @hideconstructor
  */
@@ -87,15 +87,15 @@ export class PublicationSettings {
   // eslint-disable-next-line require-jsdoc
   constructor(audio, video) {
     /**
-     * @member {Owt.Base.AudioPublicationSettings[]} audio
+     * @member {Infraframe.Base.AudioPublicationSettings[]} audio
      * @instance
-     * @memberof Owt.Base.PublicationSettings
+     * @memberof Infraframe.Base.PublicationSettings
      */
     this.audio=audio;
     /**
-     * @member {Owt.Base.VideoPublicationSettings[]} video
+     * @member {Infraframe.Base.VideoPublicationSettings[]} video
      * @instance
-     * @memberof Owt.Base.PublicationSettings
+     * @memberof Infraframe.Base.PublicationSettings
      */
     this.video=video;
   }
@@ -103,8 +103,8 @@ export class PublicationSettings {
 
 /**
  * @class Publication
- * @extends Owt.Base.EventDispatcher
- * @memberOf Owt.Base
+ * @extends Infraframe.Base.EventDispatcher
+ * @memberOf Infraframe.Base
  * @classDesc Publication represents a sender for publishing a stream. It
  * handles the actions on a LocalStream published to a conference.
  *
@@ -128,7 +128,7 @@ export class Publication extends EventDispatcher {
     /**
      * @member {string} id
      * @instance
-     * @memberof Owt.Base.Publication
+     * @memberof Infraframe.Base.Publication
      */
     Object.defineProperty(this, 'id', {
       configurable: false,
@@ -136,11 +136,11 @@ export class Publication extends EventDispatcher {
       value: id ? id : Utils.createUuid(),
     });
     /**
-     * @member {Owt.Base.TransportSettings} transport
+     * @member {Infraframe.Base.TransportSettings} transport
      * @instance
      * @readonly
      * @desc Transport settings for the publication.
-     * @memberof Owt.Base.Publication
+     * @memberof Infraframe.Base.Publication
      */
     Object.defineProperty(this, 'transport', {
       configurable: false,
@@ -152,7 +152,7 @@ export class Publication extends EventDispatcher {
      * @instance
      * @desc Stop certain publication. Once a subscription is stopped, it cannot
      * be recovered.
-     * @memberof Owt.Base.Publication
+     * @memberof Infraframe.Base.Publication
      * @returns {undefined}
      */
     this.stop = stop;
@@ -160,7 +160,7 @@ export class Publication extends EventDispatcher {
      * @function getStats
      * @instance
      * @desc Get stats of underlying PeerConnection.
-     * @memberof Owt.Base.Publication
+     * @memberof Infraframe.Base.Publication
      * @returns {Promise<RTCStatsReport, Error>}
      */
     this.getStats = getStats;
@@ -168,8 +168,8 @@ export class Publication extends EventDispatcher {
      * @function mute
      * @instance
      * @desc Stop sending data to remote endpoint.
-     * @memberof Owt.Base.Publication
-     * @param {Owt.Base.TrackKind } kind Kind of tracks to be muted.
+     * @memberof Infraframe.Base.Publication
+     * @param {Infraframe.Base.TrackKind } kind Kind of tracks to be muted.
      * @returns {Promise<undefined, Error>}
      */
     this.mute = mute;
@@ -177,8 +177,8 @@ export class Publication extends EventDispatcher {
      * @function unmute
      * @instance
      * @desc Continue sending data to remote endpoint.
-     * @memberof Owt.Base.Publication
-     * @param {Owt.Base.TrackKind } kind Kind of tracks to be unmuted.
+     * @memberof Infraframe.Base.Publication
+     * @param {Infraframe.Base.TrackKind } kind Kind of tracks to be unmuted.
      * @returns {Promise<undefined, Error>}
      */
     this.unmute = unmute;
@@ -187,31 +187,31 @@ export class Publication extends EventDispatcher {
 
 /**
  * @class PublishOptions
- * @memberOf Owt.Base
+ * @memberOf Infraframe.Base
  * @classDesc PublishOptions defines options for publishing a
- * Owt.Base.LocalStream.
+ * Infraframe.Base.LocalStream.
  */
 export class PublishOptions {
   // eslint-disable-next-line require-jsdoc
   constructor(audio, video, transport) {
     /**
-     * @member {?Array<Owt.Base.AudioEncodingParameters> | ?Array<RTCRtpEncodingParameters>} audio
+     * @member {?Array<Infraframe.Base.AudioEncodingParameters> | ?Array<RTCRtpEncodingParameters>} audio
      * @instance
-     * @memberof Owt.Base.PublishOptions
+     * @memberof Infraframe.Base.PublishOptions
      * @desc Parameters for audio RtpSender. Publishing with RTCRtpEncodingParameters is an experimental feature. It is subject to change.
      */
     this.audio = audio;
     /**
-     * @member {?Array<Owt.Base.VideoEncodingParameters> | ?Array<RTCRtpEncodingParameters>} video
+     * @member {?Array<Infraframe.Base.VideoEncodingParameters> | ?Array<RTCRtpEncodingParameters>} video
      * @instance
-     * @memberof Owt.Base.PublishOptions
+     * @memberof Infraframe.Base.PublishOptions
      * @desc Parameters for video RtpSender. Publishing with RTCRtpEncodingParameters is an experimental feature. It is subject to change.
      */
     this.video = video;
     /**
-     * @member {?Owt.Base.TransportConstraints} transport
+     * @member {?Infraframe.Base.TransportConstraints} transport
      * @instance
-     * @memberof Owt.Base.PublishOptions
+     * @memberof Infraframe.Base.PublishOptions
      */
     this.transport = transport;
   }

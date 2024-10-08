@@ -8,7 +8,7 @@ import * as EventModule from '../base/event.js';
 import {ConferenceError} from './error.js';
 import {Base64} from '../base/base64.js';
 
-'use strict';
+('use strict');
 
 const reconnectionAttempts = 10;
 
@@ -26,8 +26,8 @@ function handleResponse(status, data, resolve, reject) {
 /**
  * @class SioSignaling
  * @classdesc Socket.IO signaling channel for ConferenceClient. It is not recommended to directly access this class.
- * @memberof Owt.Conference
- * @extends Owt.Base.EventDispatcher
+ * @memberof Infraframe.Conference
+ * @extends Infraframe.Base.EventDispatcher
  * @constructor
  */
 export class SioSignaling extends EventModule.EventDispatcher {
@@ -60,15 +60,16 @@ export class SioSignaling extends EventModule.EventDispatcher {
         'force new connection': true,
       };
       this._socket = io(host, opts);
-      ['participant', 'text', 'stream', 'progress'].forEach((
-          notification) => {
+      ['participant', 'text', 'stream', 'progress'].forEach((notification) => {
         this._socket.on(notification, (data) => {
-          this.dispatchEvent(new EventModule.MessageEvent('data', {
-            message: {
-              notification: notification,
-              data: data,
-            },
-          }));
+          this.dispatchEvent(
+              new EventModule.MessageEvent('data', {
+                message: {
+                  notification: notification,
+                  data: data,
+                },
+              }),
+          );
         });
       });
       this._socket.on('reconnecting', () => {
@@ -76,7 +77,7 @@ export class SioSignaling extends EventModule.EventDispatcher {
       });
       this._socket.on('reconnect_failed', () => {
         if (this._reconnectTimes >= reconnectionAttempts) {
-          this.dispatchEvent(new EventModule.OwtEvent('disconnect'));
+          this.dispatchEvent(new EventModule.InfraframeEvent('disconnect'));
         }
       });
       this._socket.on('connect_error', (e) => {
@@ -89,7 +90,7 @@ export class SioSignaling extends EventModule.EventDispatcher {
         this._clearReconnectionTask();
         if (this._reconnectTimes >= reconnectionAttempts) {
           this._loggedIn = false;
-          this.dispatchEvent(new EventModule.OwtEvent('disconnect'));
+          this.dispatchEvent(new EventModule.InfraframeEvent('disconnect'));
         }
       });
       this._socket.emit('login', loginInfo, (status, data) => {
@@ -98,15 +99,20 @@ export class SioSignaling extends EventModule.EventDispatcher {
           this._onReconnectionTicket(data.reconnectionTicket);
           this._socket.on('connect', () => {
             // re-login with reconnection ticket.
-            this._socket.emit('relogin', this._reconnectionTicket, (status,
-                data) => {
-              if (status === 'ok') {
-                this._reconnectTimes = 0;
-                this._onReconnectionTicket(data);
-              } else {
-                this.dispatchEvent(new EventModule.OwtEvent('disconnect'));
-              }
-            });
+            this._socket.emit(
+                'relogin',
+                this._reconnectionTicket,
+                (status, data) => {
+                  if (status === 'ok') {
+                    this._reconnectTimes = 0;
+                    this._onReconnectionTicket(data);
+                  } else {
+                    this.dispatchEvent(
+                        new EventModule.InfraframeEvent('disconnect'),
+                    );
+                  }
+                },
+            );
           });
         }
         handleResponse(status, data, resolve, reject);
@@ -124,8 +130,7 @@ export class SioSignaling extends EventModule.EventDispatcher {
    */
   disconnect() {
     if (!this._socket || this._socket.disconnected) {
-      return Promise.reject(new ConferenceError(
-          'Portal is not connected.'));
+      return Promise.reject(new ConferenceError('Portal is not connected.'));
     }
     return new Promise((resolve, reject) => {
       this._socket.emit('logout', (status, data) => {
@@ -160,7 +165,7 @@ export class SioSignaling extends EventModule.EventDispatcher {
    * @instance
    * @desc Parse reconnection ticket and schedule ticket refreshing.
    * @param {string} ticketString Reconnection ticket.
-   * @memberof Owt.Conference.SioSignaling
+   * @memberof Infraframe.Conference.SioSignaling
    * @private.
    */
   _onReconnectionTicket(ticketString) {
@@ -194,7 +199,7 @@ export class SioSignaling extends EventModule.EventDispatcher {
    * @function _clearReconnectionTask
    * @instance
    * @desc Stop trying to refresh reconnection ticket.
-   * @memberof Owt.Conference.SioSignaling
+   * @memberof Infraframe.Conference.SioSignaling
    * @private.
    */
   _clearReconnectionTask() {

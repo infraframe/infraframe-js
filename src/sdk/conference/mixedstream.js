@@ -6,7 +6,7 @@
 
 import * as StreamModule from '../base/stream.js';
 import * as StreamUtilsModule from './streamutils.js';
-import {OwtEvent} from '../base/event.js';
+import {InfraframeEvent} from '../base/event.js';
 
 /**
  * @class RemoteMixedStream
@@ -18,8 +18,8 @@ import {OwtEvent} from '../base/event.js';
  * | activeaudioinputchange | Event            | Audio activeness of input stream (of the mixed stream) is changed. |
  * | layoutchange           | Event            | Video's layout has been changed. It usually happens when a new video is mixed into the target mixed stream or an existing video has been removed from mixed stream. |
  *
- * @memberOf Owt.Conference
- * @extends Owt.Base.RemoteStream
+ * @memberOf Infraframe.Conference
+ * @extends Infraframe.Base.RemoteStream
  * @hideconstructor
  */
 export class RemoteMixedStream extends StreamModule.RemoteStream {
@@ -28,30 +28,34 @@ export class RemoteMixedStream extends StreamModule.RemoteStream {
     if (info.type !== 'mixed') {
       throw new TypeError('Not a mixed stream');
     }
-    super(info.id, undefined, undefined, new StreamModule.StreamSourceInfo(
-        'mixed', 'mixed'));
+    super(
+        info.id,
+        undefined,
+        undefined,
+        new StreamModule.StreamSourceInfo('mixed', 'mixed'),
+    );
 
     this.settings = StreamUtilsModule.convertToPublicationSettings(info.media);
 
     this.extraCapabilities =
-        StreamUtilsModule.convertToSubscriptionCapabilities(info.media);
+      StreamUtilsModule.convertToSubscriptionCapabilities(info.media);
   }
 }
 
 /**
  * @class ActiveAudioInputChangeEvent
  * @classDesc Class ActiveAudioInputChangeEvent represents an active audio input change event.
- * @memberof Owt.Conference
+ * @memberof Infraframe.Conference
  * @hideconstructor
  */
-export class ActiveAudioInputChangeEvent extends OwtEvent {
+export class ActiveAudioInputChangeEvent extends InfraframeEvent {
   // eslint-disable-next-line require-jsdoc
   constructor(type, init) {
     super(type);
     /**
      * @member {string} activeAudioInputStreamId
      * @instance
-     * @memberof Owt.Conference.ActiveAudioInputChangeEvent
+     * @memberof Infraframe.Conference.ActiveAudioInputChangeEvent
      * @desc The ID of input stream(of the mixed stream) whose audio is active.
      */
     this.activeAudioInputStreamId = init.activeAudioInputStreamId;
@@ -61,20 +65,19 @@ export class ActiveAudioInputChangeEvent extends OwtEvent {
 /**
  * @class LayoutChangeEvent
  * @classDesc Class LayoutChangeEvent represents an video layout change event.
- * @memberof Owt.Conference
+ * @memberof Infraframe.Conference
  * @hideconstructor
  */
-export class LayoutChangeEvent extends OwtEvent {
+export class LayoutChangeEvent extends InfraframeEvent {
   // eslint-disable-next-line require-jsdoc
   constructor(type, init) {
     super(type);
     /**
      * @member {object} layout
      * @instance
-     * @memberof Owt.Conference.LayoutChangeEvent
+     * @memberof Infraframe.Conference.LayoutChangeEvent
      * @desc Current video's layout. It's an array of map which maps each stream to a region.
      */
     this.layout = init.layout;
   }
 }
-
