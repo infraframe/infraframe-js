@@ -50,7 +50,7 @@ const runSocketIOSample = function() {
 
     var subscribeForward = getParameterByName('forward') === 'true'?true:false;
     var isSelf = getParameterByName('self') === 'false'?false:true;
-    conference = new Infraframe.Conference.ConferenceClient();
+    conference = new Owt.Conference.ConferenceClient();
     function createResolutionButtons(stream, subscribeResolutionCallback) {
         let $p = $(`#${stream.id}resolutions`);
         if ($p.length === 0) {
@@ -151,18 +151,18 @@ const runSocketIOSample = function() {
                 }
                 if (isPublish !== 'false') {
                     // audioConstraintsForMic
-                    let audioConstraints = new Infraframe.Base.AudioTrackConstraints(Infraframe.Base.AudioSourceInfo.MIC);
+                    let audioConstraints = new Owt.Base.AudioTrackConstraints(Owt.Base.AudioSourceInfo.MIC);
                     // videoConstraintsForCamera
-                    let videoConstraints = new Infraframe.Base.VideoTrackConstraints(Infraframe.Base.VideoSourceInfo.CAMERA);
+                    let videoConstraints = new Owt.Base.VideoTrackConstraints(Owt.Base.VideoSourceInfo.CAMERA);
                     if (shareScreen) {
                         // audioConstraintsForScreen
-                        audioConstraints = new Infraframe.Base.AudioTrackConstraints(Infraframe.Base.AudioSourceInfo.SCREENCAST);
+                        audioConstraints = new Owt.Base.AudioTrackConstraints(Owt.Base.AudioSourceInfo.SCREENCAST);
                         // videoConstraintsForScreen
-                        videoConstraints = new Infraframe.Base.VideoTrackConstraints(Infraframe.Base.VideoSourceInfo.SCREENCAST);
+                        videoConstraints = new Owt.Base.VideoTrackConstraints(Owt.Base.VideoSourceInfo.SCREENCAST);
                     }
 
                     let mediaStream;
-                    Infraframe.Base.MediaStreamFactory.createMediaStream(new Infraframe.Base.StreamConstraints(
+                    Owt.Base.MediaStreamFactory.createMediaStream(new Owt.Base.StreamConstraints(
                         audioConstraints, videoConstraints)).then(stream => {
                         let publishOption;
                         if (simulcast) {
@@ -173,8 +173,8 @@ const runSocketIOSample = function() {
                             ]};
                         }
                         mediaStream = stream;
-                        localStream = new Infraframe.Base.LocalStream(
-                            mediaStream, new Infraframe.Base.StreamSourceInfo(
+                        localStream = new Owt.Base.LocalStream(
+                            mediaStream, new Owt.Base.StreamSourceInfo(
                                 'mic', 'camera'));
                         $('.local video').get(0).srcObject = stream;
                         // Publish with RTCRtpTransceivers.

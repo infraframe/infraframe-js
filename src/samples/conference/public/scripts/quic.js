@@ -7,7 +7,7 @@
 let quicChannel = null;
 let bidirectionalStream = null;
 let writeTask;
-const conference=new Infraframe.Conference.ConferenceClient();
+const conference=new Owt.Conference.ConferenceClient();
 conference.addEventListener('streamadded', async (event) => {
   console.log(event.stream);
   if (event.stream.source.data) {
@@ -57,7 +57,7 @@ function createRandomContentSessionId() {
 
 async function createSendChannel() {
   bidirectionalStream = await conference.createSendStream();
-  const localStream=new Infraframe.Base.LocalStream(bidirectionalStream, new Infraframe.Base.StreamSourceInfo(undefined, undefined,true));
+  const localStream=new Owt.Base.LocalStream(bidirectionalStream, new Owt.Base.StreamSourceInfo(undefined, undefined,true));
   const publication = await conference.publish(localStream);
   console.log(publication);
   updateConferenceStatus('Created send channel.');
